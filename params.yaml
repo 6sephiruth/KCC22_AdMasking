@@ -1,0 +1,16 @@
+batch_size: 64
+
+dataset: 'mnist' # cifar10
+attack_method: ''
+gpu_num: "2"
+
+
+# model.py 참조
+model_name: 'mnist_cnn'
+
+
+# model_train: 'cifar_vgg16' 
+
+attack_eps: 
+
+xai_method: ''
