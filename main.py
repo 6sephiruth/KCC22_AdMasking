@@ -1,3 +1,5 @@
+from os import sched_getaffinity
+from restore_ad import check_tensor_ad
 from utils import *
 
 parser = argparse.ArgumentParser()
@@ -79,4 +81,12 @@ else:
 
 model.trainable = False
 
-print(model.evaluate(x_test, y_test))
+# print(model.evaluate(x_test, y_test))
+
+# change_cw_data = pickle.load(open(f'./dataset/cw_specific/change_data','rb'))
+# change_cw_data = pickle.load(open(f'./dataset/cw_specific/0','rb'))
+# print(change_cw_data.shape)
+
+
+check_tensor_ad(model, x_test, y_test)
+
