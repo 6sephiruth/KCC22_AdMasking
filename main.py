@@ -1,5 +1,5 @@
 from os import sched_getaffinity
-from restore_ad import check_tensor_ad
+from restore_ad import check_tensor_ad, neuron_check
 from utils import *
 
 parser = argparse.ArgumentParser()
@@ -91,31 +91,47 @@ model.trainable = False
 # check_tensor_ad(model, x_test, y_test)
 
 
-ad_data = pickle.load(open(f'./dataset/fgsm/0.1_test','rb'))
-ad_label = pickle.load(open(f'./dataset/fgsm/0.1_label','rb'))
+neuron_check(model)
 
-ad_list = np.where(ad_label == 1)[0]
 
-extract_origin_label = y_test[ad_list]
 
-extract_origin = x_test[ad_list]
-extract_ad = ad_data[ad_list]
 
-num = 33
 
-pred = model.predict(tf.expand_dims(extract_origin[num], 0))
-pred = np.argmax(pred)
-print("정상 {}".format(pred))
 
-pred = model.predict(tf.expand_dims(extract_ad[num], 0))
-pred = np.argmax(pred)
-print("적대적 {}".format(pred))
 
-recover = pickle.load(open(f'./dataset/fgsm/0.1_recover','rb'))
 
-pred = model.predict(tf.expand_dims(recover[num], 0))
-pred = np.argmax(pred)
-print("복구 {}".format(pred))
 
-plt.imshow(recover[num])
-plt.savefig("./img/{}.png".format(num))
+
+
+
+
+
+
+# ad_data = pickle.load(open(f'./dataset/fgsm/0.1_test','rb'))
+# ad_label = pickle.load(open(f'./dataset/fgsm/0.1_label','rb'))
+
+# ad_list = np.where(ad_label == 1)[0]
+
+# extract_origin_label = y_test[ad_list]
+
+# extract_origin = x_test[ad_list]
+# extract_ad = ad_data[ad_list]
+
+# num = 33
+
+# pred = model.predict(tf.expand_dims(extract_origin[num], 0))
+# pred = np.argmax(pred)
+# print("정상 {}".format(pred))
+
+# pred = model.predict(tf.expand_dims(extract_ad[num], 0))
+# pred = np.argmax(pred)
+# print("적대적 {}".format(pred))
+
+# recover = pickle.load(open(f'./dataset/fgsm/0.1_recover','rb'))
+
+# pred = model.predict(tf.expand_dims(recover[num], 0))
+# pred = np.argmax(pred)
+# print("복구 {}".format(pred))
+
+# plt.imshow(recover[num])
+# plt.savefig("./img/{}.png".format(num))

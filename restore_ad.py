@@ -20,106 +20,105 @@ def check_tensor_ad(model, origin_data, origin_label):
 
     max_purturbation = np.max(purturbation_data, axis=1)
 
-    saving_ad_to_normal = np.zeros_like(extract_ad)
+    # saving_ad_to_normal = np.zeros_like(extract_ad)
+    saving_ad_to_normal = []
+    saving_ad_to_normal_label = []
 
     for adversarial_count in range(extract_ad.shape[0]):
+
         print("{} 시작".format(adversarial_count))
         position = list(np.where(purturbation_data[adversarial_count] == max_purturbation[adversarial_count])[0])
 
-
-        for combination_count in range(len(position)):
-            print("{} 번째에 {}".format(len(position), combination_count))
-            for combination_list in list(permutations(position, combination_count + 1)):
-
-                adversarial_to_normal = np.reshape(ad_data[ad_list][adversarial_count] , -1)
-
-                for list_position in list(combination_list):
-
-                    adversarial_to_normal[list_position] = 0
-
-                adversarial_to_normal = np.reshape(adversarial_to_normal, (28, 28, 1))
-
-                # plt.imshow(adversarial_to_normal)
-                # plt.savefig("./img/{}_{}_{}.png".format(adversarial_count, combination_count, combination_list))
-                # plt.close()
-
-                pred = model.predict(tf.expand_dims(adversarial_to_normal, 0))
-                pred = np.argmax(pred)
+        adversarial_to_normal = np.reshape(ad_data[ad_list][adversarial_count] , -1)
 
 
-                if pred == extract_origin_label[adversarial_count]:
-                    print("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★")
-                    print("{} 번째 찾았다. ---------".format(adversarial_count))
+        for list_position in position:
 
-                    plt.imshow(adversarial_to_normal)
-                    plt.savefig("./img/{}_{}_{}.png".format(adversarial_count, combination_count, combination_list))
-                    plt.close()
+            adversarial_to_normal[list_position] = 0
+
+        adversarial_to_normal = np.reshape(adversarial_to_normal, (28, 28, 1))
+
+        pred = model.predict(tf.expand_dims(adversarial_to_normal, 0))
+        pred = np.argmax(pred)
+
+        
+        if pred == extract_origin_label[adversarial_count]:
+
+            saving_ad_to_normal.append(adversarial_to_normal)
+            saving_ad_to_normal_label.append(adversarial_count)
+
+    saving_ad_to_normal = np.array(saving_ad_to_normal)
+    saving_ad_to_normal_label = np.array(saving_ad_to_normal_label)
+
+    pickle.dump(saving_ad_to_normal, open(f'./dataset/recover_data','wb'))
+    pickle.dump(saving_ad_to_normal_label, open(f'./dataset/recover_label','wb'))
 
 
-                    saving_ad_to_normal[adversarial_count] = adversarial_to_normal
+        # for combination_count in range(len(position)):
 
-                    pickle.dump(saving_ad_to_normal, open(f'./dataset/fgsm/0.1_recover','wb'))
-                    break
+        #     print("{} 번째에 {}".format(len(position), combination_count))
 
-                # else:
-                #     adversarial_to_normal = ad_data[ad_list][adversarial_count]
+        #     for combination_list in list(permutations(position, combination_count + 1)):
 
-            if pred == extract_origin_label[adversarial_count]:
-                break
+        #         adversarial_to_normal = np.reshape(ad_data[ad_list][adversarial_count] , -1)
+
+        #         for list_position in list(combination_list):
+
+        #             adversarial_to_normal[list_position] = 0
+
+        #         adversarial_to_normal = np.reshape(adversarial_to_normal, (28, 28, 1))
 
 
+        #         pred = model.predict(tf.expand_dims(adversarial_to_normal, 0))
+        #         pred = np.argmax(pred)
 
 
-def ffds(model, origin_data, origin_label):
-    
+        #         if pred == extract_origin_label[adversarial_count]:
+        #             print("★★★★★★★★★★★★★★★★★★★★★★★★★★★★★")
+        #             print("{} 번째 찾았다. ---------".format(adversarial_count))
+
+        #             plt.imshow(adversarial_to_normal)
+        #             plt.savefig("./img/{}_{}_{}.png".format(adversarial_count, combination_count, combination_list))
+        #             plt.close()
+
+
+        #             saving_ad_to_normal[adversarial_count] = adversarial_to_normal
+
+        #             pickle.dump(saving_ad_to_normal, open(f'./dataset/fgsm/0.1_recover','wb'))
+        #             break
+
+        #         # else:
+        #         #     adversarial_to_normal = ad_data[ad_list][adversarial_count]
+
+        #     if pred == extract_origin_label[adversarial_count]:
+        #         break
+
+
+def neuron_check(model):
+
     ad_data = pickle.load(open(f'./dataset/fgsm/0.1_test','rb'))
     ad_label = pickle.load(open(f'./dataset/fgsm/0.1_label','rb'))
 
     ad_list = np.where(ad_label == 1)[0]
 
-    extract_origin_label = origin_label[ad_list]
-
-    extract_origin = origin_data[ad_list]
     extract_ad = ad_data[ad_list]
 
-    num = 0
-
-    pred = model.predict(tf.expand_dims(extract_origin[num], 0))
-    pred = np.argmax(pred)
-    print("정상 {}".format(pred))
-
-    pred = model.predict(tf.expand_dims(extract_ad[num], 0))
-    pred = np.argmax(pred)
-    print("적대적 {}".format(pred))
-
-    recover = pickle.load(open(f'./dataset/fgsm/0.1_recover','rb'))
-
-    pred = model.predict(tf.expand_dims(recover[num], 0))
-    pred = np.argmax(pred)
-    print("복구 {}".format(pred))
+    recover_data = pickle.load(open(f'./dataset/recover_data','rb'))
+    recover_label = pickle.load(open(f'./dataset/recover_label','rb'))
 
 
-        # if pred == extract_origin_label[adversarial_count]:
-        #     break
+    select_ad = extract_ad[recover_label]
+
+    # print(recover_data.shape)
+    # print(recover_label.shape)
+
+    # print(select_ad.shape)
 
 
-    #             # reshape_extract_ad = np.reshape(extract_ad[adversarial_count], (28, 28, 1))
+    # 5. 은닉층의 출력 확인하기
 
-    #             # plt.imshow(reshape_extract_ad)
-    #             # plt.savefig("./img/{}_{}_{}.png".format(adversarial_count, combination_count, combination_list))
 
-    #             pred = model.predict(tf.expand_dims(reshape_extract_ad, 0))
-    #             pred = np.argmax(pred)
+    intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
+    intermediate_output = intermediate_layer_model(recover_data[0])
 
-    #             if pred == extract_origin_label[adversarial_count]:
-    #                 restore_adversarial[adversarial_count] = reshape_extract_ad
-
-    #                 print(adversarial_count)
-    #                 print("변경되었다.")
-    #                 break
-
-    #             else:
-    #                 extract_ad[adversarial_count] = temporary_adversarial
-
-    #         if pred == extract_origin_label[adversarial_count]:
-    #             break
+    print(intermediate_output)
