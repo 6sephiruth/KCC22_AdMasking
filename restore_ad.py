@@ -100,12 +100,10 @@ def neuron_check(model):
     ad_label = pickle.load(open(f'./dataset/fgsm/0.1_label','rb'))
 
     ad_list = np.where(ad_label == 1)[0]
-
     extract_ad = ad_data[ad_list]
 
     recover_data = pickle.load(open(f'./dataset/recover_data','rb'))
     recover_label = pickle.load(open(f'./dataset/recover_label','rb'))
-
 
     select_ad = extract_ad[recover_label]
 
@@ -117,8 +115,19 @@ def neuron_check(model):
 
     # 5. 은닉층의 출력 확인하기
 
+    layer_0_output = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)(recover_data)
 
-    intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
-    intermediate_output = intermediate_layer_model(recover_data[0])
+    layer_0_list = np.zeros_like(layer_0_output[0])
 
-    print(intermediate_output)
+    for i in range(len(layer_0_output)):
+
+        layer_position = np.where(layer_0_output[i] == 0)
+        layer_0_list[layer_position] += 1
+
+    # kk = np.where(layer_0_output[0] == 0)
+    # layer_0_list[kk] += 1
+    # print(layer_0_list)
+
+    # print(intermediate_output[0])
+    # position_where = np.where(intermediate_output[0] == 0)
+    # print(position_where)
