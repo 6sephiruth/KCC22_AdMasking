@@ -34,3 +34,26 @@ from utils import *
 #         pickle.dump(attack_label, open(f'./dataset/untargeted_cw/label','wb'))
 
 #     return attack_test, attack_label
+
+def make_targeted_cw(particular_class, model, x_data, y_data):
+
+    particular_dataset = x_data[np.where(y_data == particular_class)]
+
+    for targeted_num in trange(10):
+
+        adversarial_dataset = []
+
+        for dataset_count in trange(len(particular_dataset)):
+
+            img = particular_dataset[dataset_count]         
+
+            adversarial_data = targeted_cw(model, img, targeted_num)
+
+            pred_adv_data = model.predict(tf.expand_dims(adversarial_data, 0))
+            pred_adv_data = np.argmax(pred_adv_data)
+
+            if targeted_num == pred_adv_data:
+                adversarial_dataset.append(adversarial_data)
+                
+        adversarial_dataset = np.array(adversarial_dataset)
+        pickle.dump(adversarial_dataset, open(f'./dataset/targeted_cw/{particular_class}-{targeted_num}','wb'))

@@ -1,5 +1,5 @@
 from os import sched_getaffinity
-from restore_ad import check_tensor_ad, neuron_check
+from dataset_process import make_targeted_cw
 from utils import *
 
 parser = argparse.ArgumentParser()
@@ -91,10 +91,10 @@ model.trainable = False
 # check_tensor_ad(model, x_test, y_test)
 
 
-neuron_check(model)
+# neuron_check(model)
 
 
-
+make_targeted_cw(9, model, x_test, y_test)
 
 
 
