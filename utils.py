@@ -84,6 +84,35 @@ def neuron_activation_analyze(model, data):
     total_activation[activation_position] = 1
 
     total_activation = np.sum(total_activation, axis=0)
-    total_activation = np.reshape(total_activation, (1,-1))
+    sort_total_activation = np.sort(total_activation)
+    
+    top_5_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*5))):]
+    top_10_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*10))):]
+    top_20_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*20))):]
+    
+    top_5_position_activation = np.where(top_5_activation[0] <= total_activation)
+    top_10_position_activation = np.where(top_10_activation[0] <= total_activation)
+    top_20_position_activation = np.where(top_20_activation[0] <= total_activation)
 
-    top_5 = 
+    top_5_result = np.zeros_like(total_activation)
+    top_5_result[top_5_position_activation] = 1
+    top_5_result = top_5_result[:44944]
+    top_5_result = np.reshape(top_5_result, (212, 212))
+
+    top_10_result = np.zeros_like(total_activation)
+    top_10_result[top_10_position_activation] = 1
+    top_10_result = np.reshape(top_10_result, (1,-1))
+    top_10_result = top_10_result[:44944]
+    top_10_result = np.reshape(top_10_result, (212, 212))
+
+
+    top_20_result = np.zeros_like(total_activation)
+    top_20_result[top_20_position_activation] = 1
+    top_20_result = np.reshape(top_20_result, (1,-1))
+    top_20_result = top_20_result[:44944]
+    top_20_result = np.reshape(top_20_result, (212, 212))
+
+
+    print(top_5_result.shape)
+    plt.imshow(top_5_result)
+    plt.savefig("./333.png")

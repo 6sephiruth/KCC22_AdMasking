@@ -124,6 +124,7 @@ def neuron_check(model):
         layer_position = np.where(layer_0_output[i] == 0)
         layer_0_list[layer_position] += 1
 
+    
     # kk = np.where(layer_0_output[0] == 0)
     # layer_0_list[kk] += 1
     # print(layer_0_list)
