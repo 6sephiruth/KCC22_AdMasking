@@ -64,3 +64,26 @@ def cifar10_data():
     x_train, x_test = x_train / 255.0, x_test / 255.0
 
     return (x_train, y_train), (x_test, y_test)
+
+def neuron_activation_analyze(model, data):
+
+    total_activation = np.empty((10000,0))
+
+    for each_layer in range(len(model.model.layers)-1):
+        
+        intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[each_layer].output)
+        intermediate_output = intermediate_layer_model(data)
+        intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))    
+
+        total_activation = np.append(total_activation, intermediate_output, axis=1)
+
+    non_activation_position = np.where(total_activation <= 0)
+    activation_position = np.where(total_activation > 0)
+
+    total_activation[non_activation_position] = 0
+    total_activation[activation_position] = 1
+
+    total_activation = np.sum(total_activation, axis=0)
+    total_activation = np.reshape(total_activation, (1,-1))
+
+    top_5 = 

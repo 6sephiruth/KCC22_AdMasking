@@ -1,5 +1,7 @@
 from os import sched_getaffinity
 from dataset_process import make_targeted_cw
+from utils import neuron_activation_analyze
+
 from utils import *
 
 parser = argparse.ArgumentParser()
@@ -94,7 +96,12 @@ model.trainable = False
 # neuron_check(model)
 
 
-make_targeted_cw(9, model, x_test, y_test)
+# make_targeted_cw(9, model, x_test, y_test)
+
+
+neuron_activation_analyze(model, x_test)
+
+
 
 
 
