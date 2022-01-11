@@ -44,6 +44,15 @@ def make_targeted_cw(particular_class, model, x_data, y_data):
         adversarial_dataset = []
 
         for dataset_count in trange(len(particular_dataset)):
+            
+            if targeted_num == 0:
+                break
+
+            if targeted_num == 1:
+                break
+            if targeted_num == 2:
+                break
+
 
             img = particular_dataset[dataset_count]         
 
@@ -56,4 +65,4 @@ def make_targeted_cw(particular_class, model, x_data, y_data):
                 adversarial_dataset.append(adversarial_data)
                 
         adversarial_dataset = np.array(adversarial_dataset)
-        pickle.dump(adversarial_dataset, open(f'./dataset/targeted_cw/{particular_class}-{targeted_num}','wb'))
+        pickle.dump(adversarial_dataset, open(f'./dataset/targeted_cw/{particular_class}-----{targeted_num}','wb'))

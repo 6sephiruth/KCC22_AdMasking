@@ -96,15 +96,15 @@ model.trainable = False
 # neuron_check(model)
 
 
-# make_targeted_cw(9, model, x_test, y_test)
+# make_targeted_cw(2, model, x_test, y_test)
 
 
-neuron_activation_analyze(model, x_test)
-
-
-
-
-
+########## 오늘 저녁에 그대로 코드 실행
+########## 
+# x_test = pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
+# neuron_activation_analyze(model, x_test, 0, 1)
+##########
+##########
 
 
 

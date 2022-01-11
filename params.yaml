@@ -9,6 +9,8 @@ gpu_num: "3"
 model_name: 'mnist_cnn'
 
 
+ttest_model: 'ttest_model' #########################
+
 # model_train: 'cifar_vgg16' 
 
 attack_eps: 

@@ -65,9 +65,9 @@ def cifar10_data():
 
     return (x_train, y_train), (x_test, y_test)
 
-def neuron_activation_analyze(model, data):
+def neuron_activation_analyze(model, data, num1, num2):
 
-    total_activation = np.empty((10000,0))
+    total_activation = np.empty((len(data),0))
 
     for each_layer in range(len(model.model.layers)-1):
         
@@ -96,23 +96,45 @@ def neuron_activation_analyze(model, data):
 
     top_5_result = np.zeros_like(total_activation)
     top_5_result[top_5_position_activation] = 1
-    top_5_result = top_5_result[:44944]
-    top_5_result = np.reshape(top_5_result, (212, 212))
+    copy_top_5_result = top_5_result
+
+    top_5_result = top_5_result[:44950]   ################## 원래 크기 44992
+    top_5_result = np.reshape(top_5_result, (50, 899))
 
     top_10_result = np.zeros_like(total_activation)
     top_10_result[top_10_position_activation] = 1
-    top_10_result = np.reshape(top_10_result, (1,-1))
-    top_10_result = top_10_result[:44944]
-    top_10_result = np.reshape(top_10_result, (212, 212))
+    copy_top_10_result = top_10_result
 
+    top_10_result = top_10_result[:44950]
+    top_10_result = np.reshape(top_10_result, (50, 899))
 
     top_20_result = np.zeros_like(total_activation)
     top_20_result[top_20_position_activation] = 1
-    top_20_result = np.reshape(top_20_result, (1,-1))
-    top_20_result = top_20_result[:44944]
-    top_20_result = np.reshape(top_20_result, (212, 212))
+    copy_top_20_result = top_20_result
+
+    top_20_result = top_20_result[:44950]
+    top_20_result = np.reshape(top_20_result, (50, 899))
 
 
-    print(top_5_result.shape)
     plt.imshow(top_5_result)
-    plt.savefig("./333.png")
+    plt.axis('off')
+    plt.savefig("./img/top5_{}-{}.png".format(num1, num2))
+    plt.cla()
+
+    plt.imshow(top_10_result)
+    plt.axis('off')
+    plt.savefig("./img/top10_{}-{}.png".format(num1, num2))
+    plt.cla()
+
+    plt.imshow(top_20_result)
+    plt.axis('off')
+    plt.savefig("./img/top20_{}-{}.png".format(num1, num2))
+    plt.cla()
+
+    arrange_result = np.empty((3, len(copy_top_5_result)))
+
+    arrange_result[0] = copy_top_5_result
+    arrange_result[1] = copy_top_10_result
+    arrange_result[2] = copy_top_20_result
+
+    pickle.dump(arrange_result, open(f'./dataset/targeted_analysis/{num1}-{num2}','wb'))
