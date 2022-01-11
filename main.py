@@ -108,9 +108,9 @@ model.trainable = False
 
 
 
-model_weight_analysis(0, model)
+# model_weight_analysis(0, model)
 
-
+print(model.model.summary())
 
 
 

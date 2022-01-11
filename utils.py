@@ -184,23 +184,23 @@ def model_weight_analysis(analysis_num, model):
     # weights = np.array(weight0)
     # model.model.layers[7].set_weights(weights)
 
-    weight0 = np.zeros((3, 3, 1, 32))
-    weight1 = np.zeros((32))
-    weight2 = np.ones((3,3,32,64))
-    weight3 = np.zeros((64))
-    weight4 = np.zeros((3,3,64,64))
-    weight5 = np.zeros((64))
-    weight6 = np.ones((1024,64))
-    weight7 = np.zeros((64))
-    weight8 = np.zeros((64,10))
-    weight9 = np.zeros((10))
+    # weight0 = np.zeros((3, 3, 1, 32))
+    # weight1 = np.zeros((32))
+    # weight2 = np.ones((3,3,32,64))
+    # weight3 = np.zeros((64))
+    # weight4 = np.zeros((3,3,64,64))
+    # weight5 = np.zeros((64))
+    # weight6 = np.ones((1024,64))
+    # weight7 = np.zeros((64))
+    # weight8 = np.zeros((64,10))
+    # weight9 = np.zeros((10))
 
-    weights = np.array([weight0, weight1, weight2, weight3, weight4, weight5, weight6, weight7, weight8, weight9])
+    # weights = np.array([weight0, weight1, weight2, weight3, weight4, weight5, weight6, weight7, weight8, weight9])
 
-    # 5. 웨이트 적용하기
-    model.model.set_weights(weights)
+    # # 5. 웨이트 적용하기
+    # model.model.set_weights(weights)
 
-    print(model.model.get_weights())
+    print(model.model.get_weights()[1])
 
     # for i in range(10):
     #     print(model.model.get_weights()[i].shape)
