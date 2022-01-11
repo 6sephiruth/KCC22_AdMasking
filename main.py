@@ -99,7 +99,7 @@ model.trainable = False
 # make_targeted_cw(2, model, x_test, y_test)
 
 
-########## 오늘 저녁에 그대로 코드 실행
+########## 오늘 저녁에 그대로 코드 실행#########################################
 ########## 
 # x_test = pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
 # neuron_activation_analyze(model, x_test, 0, 1)
@@ -108,13 +108,18 @@ model.trainable = False
 
 
 
+model_weight_analysis(0, model)
 
 
 
 
 
 
-# ad_data = pickle.load(open(f'./dataset/fgsm/0.1_test','rb'))
+
+
+
+
+
 # ad_label = pickle.load(open(f'./dataset/fgsm/0.1_label','rb'))
 
 # ad_list = np.where(ad_label == 1)[0]

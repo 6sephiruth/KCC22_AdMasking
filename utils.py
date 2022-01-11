@@ -138,3 +138,76 @@ def neuron_activation_analyze(model, data, num1, num2):
     arrange_result[2] = copy_top_20_result
 
     pickle.dump(arrange_result, open(f'./dataset/targeted_analysis/{num1}-{num2}','wb'))
+
+def model_weight_analysis(analysis_num, model):
+
+    total_data = np.empty((10,3,44992))
+
+    for i in range(10):
+    
+        total_data[i] = pickle.load(open(f'./dataset/targeted_analysis/{i}-{analysis_num}','rb'))
+
+    adversarial_activation_position = np.zeros((3,44992))
+
+    for i in range(10):
+
+        for j in range(3):
+
+            if i == analysis_num:    
+                break
+            
+            position = np.where(total_data[i][j] == 1)
+
+            adversarial_activation_position[j][position] = 1 
+
+    top_5_result = adversarial_activation_position[0] - total_data[analysis_num][0]
+    position = np.where(top_5_result != 1)
+    top_5_result[position] = 0
+
+    top_10_result = adversarial_activation_position[1] - total_data[analysis_num][1]
+    position = np.where(top_10_result != 1)
+    top_10_result[position] = 0
+
+    top_20_result = adversarial_activation_position[2] - total_data[analysis_num][2]
+    position = np.where(top_20_result != 1)
+    top_20_result[position] = 0
+
+
+    # print(np.sum(top_5_result))
+    # print(np.sum(top_10_result))
+    # print(np.sum(top_20_result))
+    # model.model.layers[7].weights[0][0] = 0
+
+    # weight0 = np.zeros((64, 10))
+
+
+    # weights = np.array(weight0)
+    # model.model.layers[7].set_weights(weights)
+
+    weight0 = np.zeros((3, 3, 1, 32))
+    weight1 = np.zeros((32))
+    weight2 = np.ones((3,3,32,64))
+    weight3 = np.zeros((64))
+    weight4 = np.zeros((3,3,64,64))
+    weight5 = np.zeros((64))
+    weight6 = np.ones((1024,64))
+    weight7 = np.zeros((64))
+    weight8 = np.zeros((64,10))
+    weight9 = np.zeros((10))
+
+    weights = np.array([weight0, weight1, weight2, weight3, weight4, weight5, weight6, weight7, weight8, weight9])
+
+    # 5. 웨이트 적용하기
+    model.model.set_weights(weights)
+
+    print(model.model.get_weights())
+
+    # for i in range(10):
+    #     print(model.model.get_weights()[i].shape)
+
+
+
+    # print(model.model.layers[7].get_weights()[0].shape)
+
+
+    # print(model.model.layers[7].weights[0][0][0])

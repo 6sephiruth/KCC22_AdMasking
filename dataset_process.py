@@ -45,13 +45,13 @@ def make_targeted_cw(particular_class, model, x_data, y_data):
 
         for dataset_count in trange(len(particular_dataset)):
             
-            if targeted_num == 0:
-                break
+            # if targeted_num == 0:
+            #     break
 
-            if targeted_num == 1:
-                break
-            if targeted_num == 2:
-                break
+            # if targeted_num == 1:
+            #     break
+            # if targeted_num == 2:
+            #     break
 
 
             img = particular_dataset[dataset_count]         

@@ -18,4 +18,3 @@ attack_test, attack_label = np.array(attack_test), np.array(attack_label)
 
 pickle.dump(attack_test, open(f'./dataset/fgsm/0.1_test','wb'))
 pickle.dump(attack_label, open(f'./dataset/fgsm/0.1_label','wb'))
-
