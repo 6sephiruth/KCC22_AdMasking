@@ -110,11 +110,11 @@ model.trainable = False
 
 # model_weight_analysis(0, model)
 
-print(model.model.summary())
+# print(model.model.summary())
 
 
-
-
+pickle.dump(x_test, open(f'./MNIST-x_test','wb'))
+pickle.dump(y_test, open(f'./MNIST-y_test','wb'))
 
 
 
