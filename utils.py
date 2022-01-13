@@ -139,7 +139,7 @@ def neuron_activation_analyze(model, data, num1, num2):
 
     pickle.dump(arrange_result, open(f'./dataset/targeted_analysis/{num1}-{num2}','wb'))
 
-def model_weight_analysis(analysis_num, model):
+def model_weight_analysis(analysis_num, model, data):
 
     total_data = np.empty((10,3,44992))
 
@@ -200,14 +200,100 @@ def model_weight_analysis(analysis_num, model):
     # # 5. 웨이트 적용하기
     # model.model.set_weights(weights)
 
-    print(model.model.get_weights()[1])
+    print(model.model.get_weights()[0].shape)
 
-    # for i in range(10):
-    #     print(model.model.get_weights()[i].shape)
+    # cp_weight0 = model.model.get_weights()[0]
+    # cp_weight1 = model.model.get_weights()[1]
+    # cp_weight2 = model.model.get_weights()[2]
+    # cp_weight3 = model.model.get_weights()[3]
+    # cp_weight4 = model.model.get_weights()[4]
+    # cp_weight5 = model.model.get_weights()[5]
+    # cp_weight6 = model.model.get_weights()[6]
+    # cp_weight7 = model.model.get_weights()[7]
+    # cp_weight8 = model.model.get_weights()[8]
+    # cp_weight9 = model.model.get_weights()[9]
+
+    # for i in range(4):
+
+    #     print(model.model.get_weights()[0][i])            
+    #     print("-------------------------")
+    #     time.sleep(4)
+
+        
+    print(top_5_result.shape)
+
+    ff = top_5_result[:25088]
+    ff = ff.reshape((28,28,1,32))
+
+    top_5_result = top_5_result[25088:]
+
+    position = np.where(ff == 1)
+
+    intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
+    intermediate_output = intermediate_layer_model(data)
+
+    # intermediate_output[position] = 0
+    kk = np.copy(intermediate_output)
+    # kk[position] = 0
+
+    print(intermediate_output == kk)
 
 
+    # print(len(model.model.layers[0].output.shape))
+    # print(model.model.layers[0].output.shape[1])
 
-    # print(model.model.layers[7].get_weights()[0].shape)
+
+def activation_modify(dataset, model):
+
+    intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
+    intermediate_output = intermediate_layer_model(dataset)
+
+    cp_weight0 = model.model.get_weights()[0]
+    cp_weight1 = model.model.get_weights()[1]
+    cp_weight2 = model.model.get_weights()[2]
+    cp_weight3 = model.model.get_weights()[3]
+    cp_weight4 = model.model.get_weights()[4]
+    cp_weight5 = model.model.get_weights()[5]
+    cp_weight6 = model.model.get_weights()[6]
+    cp_weight7 = model.model.get_weights()[7]
+    cp_weight8 = model.model.get_weights()[8]
+    cp_weight9 = model.model.get_weights()[9]
+
+    
+    model_hidden_1 = tf.keras.models.Sequential([
+        tf.keras.layers.MaxPool2D((2, 2), input_shape=(28, 28, 32))
+    ])
+
+    # model_hidden_1_weight = np.array([cp_weight2, cp_weight3])
+    # model_hidden_1.set_weights(model_hidden_1_weight)
+    print(intermediate_output.shape)
+    print(model_hidden_1.predict(intermediate_output).shape)
+    kk = model_hidden_1.predict(intermediate_output)
+
+    model_hidden_2 = tf.keras.models.Sequential([
+        keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(14,14,32))
+    ])
+
+    model_hidden_2_weight = [cp_weight2, cp_weight3]
+    model_hidden_2.set_weights(model_hidden_2_weight)
+
+    # mmm = model_hidden_2.predict(kk)
+
+    # print(cp_weight2.shape)
+    # print(cp_weight3.shape)
+    # print(model_hidden_2.get_weights()[0].shape)
+    print(cp_weight3)
+    print("====================")
+    print(model_hidden_2.get_weights()[1])
+
+    model_hidden_3 = tf.keras.models.Sequential([
+        keras.layers.MaxPool2D((2, 2), input_shape=(12,12,64))
+    ])
 
 
-    # print(model.model.layers[7].weights[0][0][0])
+    model_hidden_4 = tf.keras.models.Sequential([
+        keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(6,6,64))
+    ])
+
+    model_hidden_4_weight = [cp_weight4, cp_weight5]
+    model_hidden_4.set_weights(model_hidden_4_weight)

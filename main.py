@@ -108,13 +108,17 @@ model.trainable = False
 
 
 
-# model_weight_analysis(0, model)
+#model_weight_analysis(0, model, x_test[0])
 
 # print(model.model.summary())
 
 
-pickle.dump(x_test, open(f'./MNIST-x_test','wb'))
-pickle.dump(y_test, open(f'./MNIST-y_test','wb'))
+activation_modify(x_test, model)
+
+
+
+
+
 
 
 
