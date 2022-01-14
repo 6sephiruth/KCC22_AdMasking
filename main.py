@@ -60,12 +60,12 @@ else:
     checkpoint = ModelCheckpoint(checkpoint_path, 
                                 save_best_only=True, 
                                 save_weights_only=True, 
-                                monitor='val_loss',
+                                monitor='val_acc',
                                 verbose=1)
     if DATASET == 'mnist':
 
         model.compile(optimizer='adam',
-                    loss='sparse_categorical_crossentropy',
+                    loss=loss_fn,
                     metrics=['accuracy'])
 
         model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
@@ -108,12 +108,13 @@ model.trainable = False
 
 
 
-#model_weight_analysis(0, model, x_test[0])
-
+model_weight_analysis(0, model, x_test)
 # print(model.model.summary())
 
+# neuron_activation_analyze(model, x_test)
 
-activation_modify(x_test, model)
+
+# activation_modify(x_test, model)
 
 
 
