@@ -106,9 +106,7 @@ model.trainable = False
 ##########
 ##########
 
-
-
-model_weight_analysis(0, model, x_test)
+# model_weight_analysis(0, model, x_test)
 # print(model.model.summary())
 
 # neuron_activation_analyze(model, x_test)
@@ -116,39 +114,11 @@ model_weight_analysis(0, model, x_test)
 
 # activation_modify(x_test, model)
 
+# print(model.evaluate(x_test, y_test))
+from cleverhans.tf2.attacks.carlini_wagner_l2 import carlini_wagner_l2
 
+targeted_data = tf.one_hot(0, 10)
+print(x_test.shape)
+#kk = carlini_wagner_l2(model.model, x_test, y=targeted_data, targeted=True)
 
-
-
-
-
-
-
-
-# ad_label = pickle.load(open(f'./dataset/fgsm/0.1_label','rb'))
-
-# ad_list = np.where(ad_label == 1)[0]
-
-# extract_origin_label = y_test[ad_list]
-
-# extract_origin = x_test[ad_list]
-# extract_ad = ad_data[ad_list]
-
-# num = 33
-
-# pred = model.predict(tf.expand_dims(extract_origin[num], 0))
-# pred = np.argmax(pred)
-# print("정상 {}".format(pred))
-
-# pred = model.predict(tf.expand_dims(extract_ad[num], 0))
-# pred = np.argmax(pred)
-# print("적대적 {}".format(pred))
-
-# recover = pickle.load(open(f'./dataset/fgsm/0.1_recover','rb'))
-
-# pred = model.predict(tf.expand_dims(recover[num], 0))
-# pred = np.argmax(pred)
-# print("복구 {}".format(pred))
-
-# plt.imshow(recover[num])
-# plt.savefig("./img/{}.png".format(num))
+#pickle.dump(kk, open(f'./dataset/kk','wb'))
