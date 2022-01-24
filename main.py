@@ -83,17 +83,10 @@ else:
 
 model.trainable = False
 
-for num1 in range(10):
 
-    for num2 in range(10):
+num1 = 0
+num2 = 4
 
-        print("{}---{}".format(num1, num2))
-        print()
-        dataset = pickle.load(open(f'./dataset/targeted_cw/{num1}-{num2}','rb'))
-        pred = model.predict(dataset)
-        pred = tf.nn.softmax(pred)
-        pred = np.argmax(pred, axis=1)
+dataset = pickle.load(open(f'./dataset/targeted_cw/{num1}-{num2}','rb'))
 
-        print(np.where(pred != num2)[0].shape[0])
-        time.sleep(1)
-        print("============================================================")
+model_weight_analysis(0, model, dataset)

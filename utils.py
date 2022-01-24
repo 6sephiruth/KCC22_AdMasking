@@ -127,7 +127,7 @@ def neuron_activation_analyze(model, data, num1, num2):
     top_20_result[top_20_position_activation] = 1
     copy_top_20_result = top_20_result
 
-    arrange_result = np.empty((6, len(copy_top_5_result)))
+    arrange_result = np.empty((6, len(copy_top_3_result)))
 
     arrange_result[0] = copy_top_1_result
     arrange_result[1] = copy_top_3_result
@@ -235,7 +235,7 @@ def model_weight_analysis(analysis_num, model, dataset):
     top_10_result = top_10_result[25088:]
     top_15_result = top_15_result[25088:]
     top_20_result = top_20_result[25088:]
-
+    규규규 모델 2
     #-------------------------------------------------------------------------------------------------
     model_layer_2 = tf.keras.models.Sequential([
         tf.keras.layers.MaxPool2D((2, 2), input_shape=(28, 28, 32))
