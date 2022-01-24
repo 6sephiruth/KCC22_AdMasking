@@ -83,42 +83,17 @@ else:
 
 model.trainable = False
 
-# print(model.evaluate(x_test, y_test))
+for num1 in range(10):
 
-# change_cw_data = pickle.load(open(f'./dataset/cw_specific/change_data','rb'))
-# change_cw_data = pickle.load(open(f'./dataset/cw_specific/0','rb'))
-# print(change_cw_data.shape)
+    for num2 in range(10):
 
+        print("{}---{}".format(num1, num2))
+        print()
+        dataset = pickle.load(open(f'./dataset/targeted_cw/{num1}-{num2}','rb'))
+        pred = model.predict(dataset)
+        pred = tf.nn.softmax(pred)
+        pred = np.argmax(pred, axis=1)
 
-# check_tensor_ad(model, x_test, y_test)
-
-
-# neuron_check(model)
-
-
-# make_targeted_cw(2, model, x_test, y_test)
-
-
-########## 오늘 저녁에 그대로 코드 실행#########################################
-########## 
-# x_test = pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
-# neuron_activation_analyze(model, x_test, 0, 1)
-##########
-##########
-
-# model_weight_analysis(0, model, x_test)
-# print(model.model.summary())
-
-# neuron_activation_analyze(model, x_test)
-
-
-# activation_modify(x_test, model)
-
-# print(model.evaluate(x_test, y_test))
-from cleverhans.tf2.attacks.carlini_wagner_l2 import carlini_wagner_l2
-
-targeted_data = tf.one_hot(0, 10)
-print(x_test.shape)
-#kk = carlini_wagner_l2(model.model, x_test, y=targeted_data, targeted=True)
-
-#pickle.dump(kk, open(f'./dataset/kk','wb'))
+        print(np.where(pred != num2)[0].shape[0])
+        time.sleep(1)
+        print("============================================================")

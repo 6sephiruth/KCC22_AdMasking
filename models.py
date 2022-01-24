@@ -24,5 +24,3 @@ class mnist_cnn(Model):
 
     def predict_classes(self, inputs):
         return self.model.predict_classes(inputs)
-
-
