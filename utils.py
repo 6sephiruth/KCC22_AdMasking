@@ -136,7 +136,8 @@ def neuron_activation_analyze(model, data, num1, num2):
     arrange_result[4] = copy_top_15_result
     arrange_result[5] = copy_top_20_result
 
-    pickle.dump(arrange_result, open(f'./dataset/targeted_analysis/{num1}-{num2}','wb'))
+    # pickle.dump(arrange_result, open(f'./dataset/targeted_analysis/{num1}-{num2}','wb'))
+    #### pickle.dump(arrange_result, open(f'./dataset/targeted_half_analysis/{num1}-{num2}','wb'))
 
 def model_weight_analysis(analysis_num, model, dataset):
 
@@ -147,6 +148,7 @@ def model_weight_analysis(analysis_num, model, dataset):
     for i in range(10):
     
         total_data[i] = pickle.load(open(f'./dataset/targeted_analysis/{analysis_num}-{i}','rb'))
+        # total_data[i] = pickle.load(open(f'./dataset/targeted_half_analysis/{analysis_num}-{i}','rb'))
 
     adversarial_activation_position = np.zeros((6,44992))
 
@@ -235,12 +237,11 @@ def model_weight_analysis(analysis_num, model, dataset):
     top_10_result = top_10_result[25088:]
     top_15_result = top_15_result[25088:]
     top_20_result = top_20_result[25088:]
-    규규규 모델 2
+
     #-------------------------------------------------------------------------------------------------
     model_layer_2 = tf.keras.models.Sequential([
         tf.keras.layers.MaxPool2D((2, 2), input_shape=(28, 28, 32))
     ])
-
 
     layer_2_output_1 = model_layer_2.predict(layer_1_output_1)
     layer_2_output_3 = model_layer_2.predict(layer_1_output_3)
@@ -374,7 +375,6 @@ def model_weight_analysis(analysis_num, model, dataset):
     model_hidden_5_weight = [cp_weight4, cp_weight5]
     model_layer_5.set_weights(model_hidden_5_weight)
 
-
     layer_5_output_1 = model_layer_5.predict(layer_4_output_1)
     layer_5_output_3 = model_layer_5.predict(layer_4_output_3)
     layer_5_output_5 = model_layer_5.predict(layer_4_output_5)
@@ -491,7 +491,6 @@ def model_weight_analysis(analysis_num, model, dataset):
     layer_8_output_15 = tf.nn.softmax(layer_8_output_15)
     layer_8_output_20 = tf.nn.softmax(layer_8_output_20)
 
-
     layer_8_output_1 = np.argmax(layer_8_output_1, axis=1)
     layer_8_output_3 = np.argmax(layer_8_output_3, axis=1)
     layer_8_output_5 = np.argmax(layer_8_output_5, axis=1)
@@ -506,23 +505,397 @@ def model_weight_analysis(analysis_num, model, dataset):
     k4 = np.where(layer_8_output_15 == analysis_num)[0]
     k5 = np.where(layer_8_output_20 == analysis_num)[0]
 
-    print(k0.shape)
-    print(k1.shape)
-    print(k2.shape)
-    print(k3.shape)
-    print(k4.shape)
-    print(k5.shape)
+    print("1%  {: .2f}".format(len(k0) / len(dataset)*100))
+    print("3%  {: .2f}".format(len(k1) / len(dataset)*100))
+    print("5%  {: .2f}".format(len(k2) / len(dataset)*100))
+    print("10%  {: .2f}".format(len(k3) / len(dataset)*100))
+    print("15%  {: .2f}".format(len(k4) / len(dataset)*100))
+    print("20%  {: .2f}".format(len(k5) / len(dataset)*100))
 
-    f0 =len(k0)
-    f1 =len(k1)
-    f2 =len(k2)
-    f3 =len(k3)
-    f4 =len(k4)
-    f5 =len(k5)
 
-    print(f0 / len(dataset)*100)
-    print(f1 / len(dataset)*100)
-    print(f2 / len(dataset)*100)
-    print(f3 / len(dataset)*100)
-    print(f4 / len(dataset)*100)
-    print(f5 / len(dataset)*100)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def go_model_weight_analysis(analysis_num, analysis_num2 , model, dataset):
+    
+#     # 여기서 dataset는 pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
+
+#     total_data = np.empty((10,6,44992))
+
+#     for i in range(10):
+    
+#         total_data[i] = pickle.load(open(f'./dataset/targeted_analysis/{i}-{analysis_num}','rb'))
+
+#     adversarial_activation_position = np.zeros((6,44992))
+
+#     for i in range(10): 
+
+#         for j in range(6):
+
+#             if i == analysis_num:    
+#                 break
+            
+#             position = np.where(total_data[i][j] == 1)
+
+#             adversarial_activation_position[j][position] = 1 
+
+#     top_1_result = adversarial_activation_position[0] - total_data[analysis_num][0]
+#     position = np.where(top_1_result != 1)
+#     top_1_result[position] = 0
+
+#     top_3_result = adversarial_activation_position[1] - total_data[analysis_num][1]
+#     position = np.where(top_3_result != 1)
+#     top_3_result[position] = 0
+
+#     top_5_result = adversarial_activation_position[2] - total_data[analysis_num][2]
+#     position = np.where(top_5_result != 1)
+#     top_5_result[position] = 0
+
+#     top_10_result = adversarial_activation_position[3] - total_data[analysis_num][3]
+#     position = np.where(top_10_result != 1)
+#     top_10_result[position] = 0
+
+#     top_15_result = adversarial_activation_position[4] - total_data[analysis_num][4]
+#     position = np.where(top_15_result != 1)
+#     top_15_result[position] = 0
+
+#     top_20_result = adversarial_activation_position[5] - total_data[analysis_num][5]
+#     position = np.where(top_20_result != 1)
+#     top_20_result[position] = 0
+
+#     ####################################################################
+#     cp_weight0 = model.model.get_weights()[0]
+#     cp_weight1 = model.model.get_weights()[1]
+#     cp_weight2 = model.model.get_weights()[2]
+#     cp_weight3 = model.model.get_weights()[3]
+#     cp_weight4 = model.model.get_weights()[4]
+#     cp_weight5 = model.model.get_weights()[5]
+#     cp_weight6 = model.model.get_weights()[6]
+#     cp_weight7 = model.model.get_weights()[7]
+#     cp_weight8 = model.model.get_weights()[8]
+#     cp_weight9 = model.model.get_weights()[9]
+
+#     intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
+
+#     layer_1_output_1 = np.array(intermediate_layer_model(dataset))
+#     layer_1_output_3 = np.array(intermediate_layer_model(dataset))
+#     layer_1_output_5 = np.array(intermediate_layer_model(dataset))
+#     layer_1_output_10 = np.array(intermediate_layer_model(dataset))
+#     layer_1_output_15 = np.array(intermediate_layer_model(dataset))
+#     layer_1_output_20 = np.array(intermediate_layer_model(dataset))
+
+#     adversarial_actvation_position_1 = np.reshape(top_1_result[:25088], (28, 28, 32))
+#     adversarial_actvation_position_3 = np.reshape(top_3_result[:25088], (28, 28, 32))
+#     adversarial_actvation_position_5 = np.reshape(top_5_result[:25088], (28, 28, 32))
+#     adversarial_actvation_position_10 = np.reshape(top_10_result[:25088], (28, 28, 32))
+#     adversarial_actvation_position_15 = np.reshape(top_15_result[:25088], (28, 28, 32))
+#     adversarial_actvation_position_20 = np.reshape(top_20_result[:25088], (28, 28, 32))
+
+#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
+#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
+#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
+#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
+#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
+#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+
+#     for dataset_count in range(len(dataset)):
+    
+#         layer_1_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
+#         layer_1_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
+#         layer_1_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
+#         layer_1_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
+#         layer_1_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
+#         layer_1_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#     top_1_result = top_1_result[25088:]
+#     top_3_result = top_3_result[25088:]
+#     top_5_result = top_5_result[25088:]
+#     top_10_result = top_10_result[25088:]
+#     top_15_result = top_15_result[25088:]
+#     top_20_result = top_20_result[25088:]
+
+#     #-------------------------------------------------------------------------------------------------
+#     model_layer_2 = tf.keras.models.Sequential([
+#         tf.keras.layers.MaxPool2D((2, 2), input_shape=(28, 28, 32))
+#     ])
+
+#     layer_2_output_1 = model_layer_2.predict(layer_1_output_1)
+#     layer_2_output_3 = model_layer_2.predict(layer_1_output_3)
+#     layer_2_output_5 = model_layer_2.predict(layer_1_output_5)
+#     layer_2_output_10 = model_layer_2.predict(layer_1_output_10)
+#     layer_2_output_15 = model_layer_2.predict(layer_1_output_15)
+#     layer_2_output_20 = model_layer_2.predict(layer_1_output_20)
+
+#     adversarial_actvation_position_1 = np.reshape(top_1_result[:6272], (14, 14, 32))
+#     adversarial_actvation_position_3 = np.reshape(top_3_result[:6272], (14, 14, 32))
+#     adversarial_actvation_position_5 = np.reshape(top_5_result[:6272], (14, 14, 32))
+#     adversarial_actvation_position_10 = np.reshape(top_10_result[:6272], (14, 14, 32))
+#     adversarial_actvation_position_15 = np.reshape(top_15_result[:6272], (14, 14, 32))
+#     adversarial_actvation_position_20 = np.reshape(top_20_result[:6272], (14, 14, 32))
+
+#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
+#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
+#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
+#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
+#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
+#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+
+#     for dataset_count in range(len(dataset)):
+        
+#         layer_2_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
+#         layer_2_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
+#         layer_2_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
+#         layer_2_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
+#         layer_2_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
+#         layer_2_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#     top_1_result = top_1_result[6272:]
+#     top_3_result = top_3_result[6272:]
+#     top_5_result = top_5_result[6272:]
+#     top_10_result = top_10_result[6272:]
+#     top_15_result = top_15_result[6272:]
+#     top_20_result = top_20_result[6272:]
+
+#     #--------------------------------------------------------------------------------------------------------
+#     model_layer_3 = tf.keras.models.Sequential([
+#         keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(14,14,32))
+#     ])
+
+#     model_hidden_3_weight = [cp_weight2, cp_weight3]
+#     model_layer_3.set_weights(model_hidden_3_weight)
+
+#     layer_3_output_1 = model_layer_3.predict(layer_2_output_1)
+#     layer_3_output_3 = model_layer_3.predict(layer_2_output_3)
+#     layer_3_output_5 = model_layer_3.predict(layer_2_output_5)
+#     layer_3_output_10 = model_layer_3.predict(layer_2_output_10)
+#     layer_3_output_15 = model_layer_3.predict(layer_2_output_15)
+#     layer_3_output_20 = model_layer_3.predict(layer_2_output_20)
+
+#     adversarial_actvation_position_1 = np.reshape(top_1_result[:9216], (12, 12, 64))
+#     adversarial_actvation_position_3 = np.reshape(top_3_result[:9216], (12, 12, 64))
+#     adversarial_actvation_position_5 = np.reshape(top_5_result[:9216], (12, 12, 64))
+#     adversarial_actvation_position_10 = np.reshape(top_10_result[:9216], (12, 12, 64))
+#     adversarial_actvation_position_15 = np.reshape(top_15_result[:9216], (12, 12, 64))
+#     adversarial_actvation_position_20 = np.reshape(top_20_result[:9216], (12, 12, 64))
+
+#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
+#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
+#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
+#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
+#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
+#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+
+#     for dataset_count in range(len(dataset)):
+        
+#         layer_3_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
+#         layer_3_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
+#         layer_3_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
+#         layer_3_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
+#         layer_3_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
+#         layer_3_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#     top_1_result = top_1_result[9216:]
+#     top_3_result = top_3_result[9216:]
+#     top_5_result = top_5_result[9216:]
+#     top_10_result = top_10_result[9216:]
+#     top_15_result = top_15_result[9216:]
+#     top_20_result = top_20_result[9216:]
+
+#     #--------------------------------------------------------------------------------------------------------
+#     model_layer_4 = tf.keras.models.Sequential([
+#         tf.keras.layers.MaxPool2D((2, 2), input_shape=(12, 12, 64))
+#     ])
+
+#     layer_4_output_1 = model_layer_4.predict(layer_3_output_1)
+#     layer_4_output_3 = model_layer_4.predict(layer_3_output_3)
+#     layer_4_output_5 = model_layer_4.predict(layer_3_output_5)
+#     layer_4_output_10 = model_layer_4.predict(layer_3_output_10)
+#     layer_4_output_15 = model_layer_4.predict(layer_3_output_15)
+#     layer_4_output_20 = model_layer_4.predict(layer_3_output_20)
+
+#     adversarial_actvation_position_1 = np.reshape(top_1_result[:2304], (6, 6, 64))
+#     adversarial_actvation_position_3 = np.reshape(top_3_result[:2304], (6, 6, 64))
+#     adversarial_actvation_position_5 = np.reshape(top_5_result[:2304], (6, 6, 64))
+#     adversarial_actvation_position_10 = np.reshape(top_10_result[:2304], (6, 6, 64))
+#     adversarial_actvation_position_15 = np.reshape(top_15_result[:2304], (6, 6, 64))
+#     adversarial_actvation_position_20 = np.reshape(top_20_result[:2304], (6, 6, 64))
+
+#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
+#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
+#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
+#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
+#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
+#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+
+#     for dataset_count in range(len(dataset)):
+        
+#         layer_4_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
+#         layer_4_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
+#         layer_4_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
+#         layer_4_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
+#         layer_4_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
+#         layer_4_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#     top_1_result = top_1_result[2304:]
+#     top_3_result = top_3_result[2304:]
+#     top_5_result = top_5_result[2304:]
+#     top_10_result = top_10_result[2304:]
+#     top_15_result = top_15_result[2304:]
+#     top_20_result = top_20_result[2304:]
+
+#     #--------------------------------------------------------------------------------------------------------
+#     model_layer_5 = tf.keras.models.Sequential([
+#         keras.layers.Conv2D(64, (3, 3), activation='relu', input_shape=(6,6,64))
+#     ])
+
+#     model_hidden_5_weight = [cp_weight4, cp_weight5]
+#     model_layer_5.set_weights(model_hidden_5_weight)
+
+#     layer_5_output_1 = model_layer_5.predict(layer_4_output_1)
+#     layer_5_output_3 = model_layer_5.predict(layer_4_output_3)
+#     layer_5_output_5 = model_layer_5.predict(layer_4_output_5)
+#     layer_5_output_10 = model_layer_5.predict(layer_4_output_10)
+#     layer_5_output_15 = model_layer_5.predict(layer_4_output_15)
+#     layer_5_output_20 = model_layer_5.predict(layer_4_output_20)
+
+#     adversarial_actvation_position_1 = np.reshape(top_1_result[:1024], (4, 4, 64))
+#     adversarial_actvation_position_3 = np.reshape(top_3_result[:1024], (4, 4, 64))
+#     adversarial_actvation_position_5 = np.reshape(top_5_result[:1024], (4, 4, 64))
+#     adversarial_actvation_position_10 = np.reshape(top_10_result[:1024], (4, 4, 64))
+#     adversarial_actvation_position_15 = np.reshape(top_15_result[:1024], (4, 4, 64))
+#     adversarial_actvation_position_20 = np.reshape(top_20_result[:1024], (4, 4, 64))
+
+#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
+#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
+#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
+#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
+#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
+#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+
+#     for dataset_count in range(len(dataset)):
+        
+#         layer_5_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
+#         layer_5_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
+#         layer_5_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
+#         layer_5_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
+#         layer_5_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
+#         layer_5_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#     top_1_result = top_1_result[1024:]
+#     top_3_result = top_3_result[1024:]
+#     top_5_result = top_5_result[1024:]
+#     top_10_result = top_10_result[1024:]
+#     top_15_result = top_15_result[1024:]
+#     top_20_result = top_20_result[1024:]
+
+#     #--------------------------------------------------------------------------------------------------------
+#     model_layer_6 = tf.keras.models.Sequential([
+#         keras.layers.Flatten(input_shape=(4,4,64))
+#     ])
+
+#     layer_6_output_1 = model_layer_6.predict(layer_5_output_1)
+#     layer_6_output_3 = model_layer_6.predict(layer_5_output_3)
+#     layer_6_output_5 = model_layer_6.predict(layer_5_output_5)
+#     layer_6_output_10 = model_layer_6.predict(layer_5_output_10)
+#     layer_6_output_15 = model_layer_6.predict(layer_5_output_15)
+#     layer_6_output_20 = model_layer_6.predict(layer_5_output_20)
+
+#     #--------------------------------------------------------------------------------------------------------
+#     model_layer_7 = tf.keras.models.Sequential([
+#         keras.layers.Dense(64, activation='relu', input_shape=(1024,))
+#     ])
+
+#     model_hidden_7_weight = [cp_weight6, cp_weight7]
+#     model_layer_7.set_weights(model_hidden_7_weight)
+
+#     layer_7_output_1 = model_layer_7.predict(layer_6_output_1)
+#     layer_7_output_3 = model_layer_7.predict(layer_6_output_3)
+#     layer_7_output_5 = model_layer_7.predict(layer_6_output_5)
+#     layer_7_output_10 = model_layer_7.predict(layer_6_output_10)
+#     layer_7_output_15 = model_layer_7.predict(layer_6_output_15)
+#     layer_7_output_20 = model_layer_7.predict(layer_6_output_20)
+
+#     adversarial_actvation_position_1 = np.reshape(top_1_result[:64], 64)
+#     adversarial_actvation_position_3 = np.reshape(top_3_result[:64], 64)
+#     adversarial_actvation_position_5 = np.reshape(top_5_result[:64], 64)
+#     adversarial_actvation_position_10 = np.reshape(top_10_result[:64], 64)
+#     adversarial_actvation_position_15 = np.reshape(top_15_result[:64], 64)
+#     adversarial_actvation_position_20 = np.reshape(top_20_result[:64], 64)
+
+#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
+#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
+#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
+#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
+#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
+#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+
+#     for dataset_count in range(len(dataset)):
+        
+#         layer_7_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
+#         layer_7_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
+#         layer_7_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
+#         layer_7_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
+#         layer_7_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
+#         layer_7_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#     top_1_result = top_1_result[64:]
+#     top_3_result = top_3_result[64:]
+#     top_5_result = top_5_result[64:]
+#     top_10_result = top_10_result[64:]
+#     top_15_result = top_15_result[64:]
+#     top_20_result = top_20_result[64:]
+
+#     #--------------------------------------------------------------------------------------------------------
+#     model_layer_8 = tf.keras.models.Sequential([
+#         keras.layers.Dense(10, activation='relu', input_shape=(64,))
+#     ])
+
+#     model_hidden_8_weight = [cp_weight8, cp_weight9]
+#     model_layer_8.set_weights(model_hidden_8_weight)
+
+#     layer_8_output_1 = model_layer_8.predict(layer_7_output_1)
+#     layer_8_output_3 = model_layer_8.predict(layer_7_output_3)
+#     layer_8_output_5 = model_layer_8.predict(layer_7_output_5)
+#     layer_8_output_10 = model_layer_8.predict(layer_7_output_10)
+#     layer_8_output_15 = model_layer_8.predict(layer_7_output_15)
+#     layer_8_output_20 = model_layer_8.predict(layer_7_output_20)
+
+#     layer_8_output_1 = tf.nn.softmax(layer_8_output_1)
+#     layer_8_output_3 = tf.nn.softmax(layer_8_output_3)
+#     layer_8_output_5 = tf.nn.softmax(layer_8_output_5)
+#     layer_8_output_10 = tf.nn.softmax(layer_8_output_10)
+#     layer_8_output_15 = tf.nn.softmax(layer_8_output_15)
+#     layer_8_output_20 = tf.nn.softmax(layer_8_output_20)
+
+#     layer_8_output_1 = np.argmax(layer_8_output_1, axis=1)
+#     layer_8_output_3 = np.argmax(layer_8_output_3, axis=1)
+#     layer_8_output_5 = np.argmax(layer_8_output_5, axis=1)
+#     layer_8_output_10 = np.argmax(layer_8_output_10, axis=1)
+#     layer_8_output_15 = np.argmax(layer_8_output_15, axis=1)
+#     layer_8_output_20 = np.argmax(layer_8_output_20, axis=1)
+
+#     k0 = np.where(layer_8_output_1 == analysis_num2)[0]
+#     k1 = np.where(layer_8_output_3 == analysis_num2)[0]
+#     k2 = np.where(layer_8_output_5 == analysis_num2)[0]
+#     k3 = np.where(layer_8_output_10 == analysis_num2)[0]
+#     k4 = np.where(layer_8_output_15 == analysis_num2)[0]
+#     k5 = np.where(layer_8_output_20 == analysis_num2)[0]
+
+#     print("1%  {: .2f}".format(len(k0) / len(dataset)*100))
+#     print("3%  {: .2f}".format(len(k1) / len(dataset)*100))
+#     print("5%  {: .2f}".format(len(k2) / len(dataset)*100))
+#     print("10%  {: .2f}".format(len(k3) / len(dataset)*100))
+#     print("15%  {: .2f}".format(len(k4) / len(dataset)*100))
+#     print("20%  {: .2f}".format(len(k5) / len(dataset)*100))
