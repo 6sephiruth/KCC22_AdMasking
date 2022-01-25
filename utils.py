@@ -127,7 +127,7 @@ def neuron_activation_analyze(model, data, num1, num2):
     top_20_result[top_20_position_activation] = 1
     copy_top_20_result = top_20_result
 
-    arrange_result = np.empty((6, len(copy_top_3_result)))
+    arrange_result = np.empty((6, len(copy_top_1_result)))
 
     arrange_result[0] = copy_top_1_result
     arrange_result[1] = copy_top_3_result

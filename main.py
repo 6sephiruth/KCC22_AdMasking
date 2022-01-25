@@ -82,25 +82,3 @@ else:
     model = tf.keras.models.load_model(checkpoint_path)
 
 model.trainable = False
-
-for num1 in range(10):
-    for num2 in range(10):
-
-        dataset = pickle.load(open(f'./dataset/targeted_cw/{num2}-{num1}','rb'))
-
-        print(num2)
-        pred = model.predict(dataset)
-        pred = tf.nn.softmax(pred)
-        pred = np.argmax(pred, axis=1)
-
-        print(np.where(pred == num2)[0].shape[0] / len(dataset) *100)
-        print("----------------------")
-        time.sleep(2)
-        
-        # print("{}--------------{}".format(num2, num1))
-        # dataset = pickle.load(open(f'./dataset/targeted_cw/{num2}-{num1}','rb'))
-
-
-        # go_model_weight_analysis(num1, num2 , model, dataset)
-        # print("=============================================")
-        # time.sleep(1)
