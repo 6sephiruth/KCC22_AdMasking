@@ -87,7 +87,11 @@ model.trainable = False
 for i in range(10):
     for j in range(10):
 
+        print("{}    {}  ".format(i, j))
+
         ddata = pickle.load(open(f'./dataset/targeted_cw/{i}-{j}','rb'))
 
         model_compress(i, model, ddata)
-        time.sleep(3)
+        print()
+        print("--------------------------------------------------------")
+        
