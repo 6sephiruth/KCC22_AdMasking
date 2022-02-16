@@ -499,19 +499,24 @@ def model_weight_analysis(analysis_num, model, dataset):
     layer_8_output_15 = np.argmax(layer_8_output_15, axis=1)
     layer_8_output_20 = np.argmax(layer_8_output_20, axis=1)
 
-    k0 = np.where(layer_8_output_1 == analysis_num)[0]
-    k1 = np.where(layer_8_output_3 == analysis_num)[0]
-    k2 = np.where(layer_8_output_5 == analysis_num)[0]
-    k3 = np.where(layer_8_output_10 == analysis_num)[0]
-    k4 = np.where(layer_8_output_15 == analysis_num)[0]
-    k5 = np.where(layer_8_output_20 == analysis_num)[0]
+    # k0 = np.where(layer_8_output_1 == analysis_num)[0]
+    # k1 = np.where(layer_8_output_3 == analysis_num)[0]
+    # k2 = np.where(layer_8_output_5 == analysis_num)[0]
+    # k3 = np.where(layer_8_output_10 == analysis_num)[0]
+    # k4 = np.where(layer_8_output_15 == analysis_num)[0]
+    # k5 = np.where(layer_8_output_20 == analysis_num)[0]
 
-    print("1%  {: .2f}".format(len(k0) / len(dataset)*100))
-    print("3%  {: .2f}".format(len(k1) / len(dataset)*100))
-    print("5%  {: .2f}".format(len(k2) / len(dataset)*100))
-    print("10%  {: .2f}".format(len(k3) / len(dataset)*100))
-    print("15%  {: .2f}".format(len(k4) / len(dataset)*100))
-    print("20%  {: .2f}".format(len(k5) / len(dataset)*100))
+    # print("1%  {: .2f}".format(len(k0) / len(dataset)*100))
+    # print("3%  {: .2f}".format(len(k1) / len(dataset)*100))
+    # print("5%  {: .2f}".format(len(k2) / len(dataset)*100))
+    # print("10%  {: .2f}".format(len(k3) / len(dataset)*100))
+    # print("15%  {: .2f}".format(len(k4) / len(dataset)*100))
+    # print("20%  {: .2f}".format(len(k5) / len(dataset)*100))
+    print("---------------------------------------------------")
+    for i in range(100):
+        print(layer_8_output_20[i])
+    print("---------------------------------------------------")
+
 
 #========================================================================================================
 def model_compress(analysis_num, model, dataset):

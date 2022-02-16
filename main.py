@@ -84,14 +84,21 @@ else:
 model.trainable = False
 
 
+# for i in range(10):
+#     for j in range(10):
+
+#         print("{}    {}  ".format(i, j))
+
+#         ddata = pickle.load(open(f'./dataset/targeted_cw/{i}-{j}','rb'))
+
+#         model_compress(i, model, ddata)
+#         print()
+#         print("--------------------------------------------------------")
+
+
 for i in range(10):
-    for j in range(10):
+    print("스타트 {}".format(i))
 
-        print("{}    {}  ".format(i, j))
+    dataset = pickle.load(open(f'./dataset/targeted_cw/{9}-{9}','rb'))[:100]
 
-        ddata = pickle.load(open(f'./dataset/targeted_cw/{i}-{j}','rb'))
-
-        model_compress(i, model, ddata)
-        print()
-        print("--------------------------------------------------------")
-        
+    model_weight_analysis(i, model, dataset)
