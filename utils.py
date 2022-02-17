@@ -136,7 +136,7 @@ def neuron_activation_analyze(model, data, num1, num2):
     arrange_result[4] = copy_top_15_result
     arrange_result[5] = copy_top_20_result
 
-    # pickle.dump(arrange_result, open(f'./dataset/targeted_analysis/{num1}-{num2}','wb'))
+    pickle.dump(arrange_result, open(f'./dataset/targeted_analysis/{num1}-{num2}','wb'))
     #### pickle.dump(arrange_result, open(f'./dataset/targeted_half_analysis/{num1}-{num2}','wb'))
 
 def model_weight_analysis(analysis_num, model, dataset):
@@ -158,7 +158,7 @@ def model_weight_analysis(analysis_num, model, dataset):
         for j in range(6):
 
             if i == analysis_num:    
-                break
+                pass
             
             position = np.where(total_data[i][j] == 1)
 
@@ -514,7 +514,7 @@ def model_weight_analysis(analysis_num, model, dataset):
     # print("20%  {: .2f}".format(len(k5) / len(dataset)*100))
     print("---------------------------------------------------")
     for i in range(100):
-        print(layer_8_output_20[i])
+        print(layer_8_output_10[i])
     print("---------------------------------------------------")
 
 

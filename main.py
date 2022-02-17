@@ -99,6 +99,6 @@ model.trainable = False
 for i in range(10):
     print("스타트 {}".format(i))
 
-    dataset = pickle.load(open(f'./dataset/targeted_cw/{9}-{9}','rb'))[:100]
+    dataset = pickle.load(open(f'./dataset/targeted_cw/{4}-{7}','rb'))[:100]
 
     model_weight_analysis(i, model, dataset)
