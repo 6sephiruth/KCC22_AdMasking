@@ -65,6 +65,75 @@ def cifar10_data():
 
     return (x_train, y_train), (x_test, y_test)
 
+
+# 소스코드 지저분하구나...... 규민아 나중에 다시 작업하자.... 후.
+#ㅇㄴㄻ햐ㅕㅇㅎㄴㅁ량ㅎ
+def make_targeted_cw_dataset(model, num, x_test, y_test):
+
+
+    num = num
+
+    for i in range(10):
+        print("=-=-=-=-=-=-=-=-=-=-=-=")
+        print(i)
+        if i == num:
+
+            where = np.where(y_test == num)
+            particular_data = x_test[where]
+            particular_data = tf.cast(particular_data, tf.float32)
+
+            pickle.dump(particular_data, open(f'./model/cifar-10/targeted_cw/{num}-{i}','wb'))
+
+        else:
+
+            adversarial_dataset = []
+
+            where = np.where(y_test == num)
+            particular_data = x_test[where]
+            particular_data = tf.cast(particular_data, tf.float32)
+
+            start_position = 0
+            end_point = 3
+            while(len(particular_data) > start_position):
+
+
+                particular_data = particular_data[start_position:end_point]
+
+                target = np.ones(len(particular_data))
+                where = np.where(target == 1.)
+
+                target[where] = i
+                
+                adversarial_dataset.append(carlini_wagner_l2(model, particular_data, y=target, targeted=True))
+
+
+                where = np.where(y_test == num)
+                particular_data = x_test[where]
+                particular_data = tf.cast(particular_data, tf.float32)
+                
+                # print("적대적 만들어진 갯수---------------------")
+                # print(len(x_test[where]))
+                # print(adversarial_dataset.shape)
+                start_position += 3
+                end_point += 3
+            particular_data = particular_data[start_position:]
+            target = np.ones(len(particular_data))
+            where = np.where(target == 1.)
+
+            target[where] = i
+            
+            adversarial_dataset.append(carlini_wagner_l2(model, particular_data, y=target, targeted=True))
+
+            adversarial_dataset = np.array(adversarial_dataset)
+            pickle.dump(adversarial_dataset, open(f'./model/cifar-10/targeted_cw/{num}-{i}','wb'))
+
+
+
+
+
+
+
+
 def neuron_activation_analyze(model, data, num1, num2):
 
     # 여기서 data는 pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
@@ -154,6 +223,8 @@ def model_weight_analysis(analysis_num, model, dataset):
     adversarial_activation_position = np.zeros((6,44992))
 
     for i in range(10):
+        # if i == analysis_num:    
+        #     pass
 
         for j in range(6):
 

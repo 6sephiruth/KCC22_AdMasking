@@ -3,6 +3,7 @@ from dataset_process import make_targeted_cw
 from utils import neuron_activation_analyze
 
 from utils import *
+from attack_method import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--params', dest='params')
@@ -28,8 +29,9 @@ os.environ['TF_DETERMINISTIC_OPS'] = '0'
 
 ATTACK_METHOD = params_loaded['attack_method']
 DATASET = params_loaded['dataset']
+MODEL_NAME = params_loaded['model_name']
 
-datadir = ['model', 'model/' + DATASET, 'dataset', 'dataset/' + ATTACK_METHOD]
+datadir = ['model', 'model/' + MODEL_NAME, 'model/' + MODEL_NAME + '/targeted_cw' , 'dataset', 'dataset/' + ATTACK_METHOD]
 mkdir(datadir)
 
 ATTACK_EPS = params_loaded['attack_eps']
@@ -48,9 +50,9 @@ x_test, y_test = test
 
 model = eval(params_loaded['model_name'])()
 
-checkpoint_path = f'model/{DATASET}'
+checkpoint_path = f'model/{MODEL_NAME}'
 
-if exists(f'model/{DATASET}/saved_model.pb'):
+if exists(f'model/{MODEL_NAME}/saved_model.pb'):
 
     model = tf.keras.models.load_model(checkpoint_path)
 
@@ -84,21 +86,10 @@ else:
 model.trainable = False
 
 
-# for i in range(10):
-#     for j in range(10):
+### targeted cw 데이터셋 만들기 시간 오래걸리니..
+#make_targeted_cw_dataset(model, 9, x_test, y_test)
 
-#         print("{}    {}  ".format(i, j))
-
-#         ddata = pickle.load(open(f'./dataset/targeted_cw/{i}-{j}','rb'))
-
-#         model_compress(i, model, ddata)
-#         print()
-#         print("--------------------------------------------------------")
-
-
-for i in range(10):
-    print("스타트 {}".format(i))
-
-    dataset = pickle.load(open(f'./dataset/targeted_cw/{4}-{7}','rb'))[:100]
-
-    model_weight_analysis(i, model, dataset)
+print(type(x_test))
+print(type(y_test))
+print(x_test.shape)
+print(y_test.shape)
