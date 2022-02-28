@@ -10,7 +10,7 @@ from keras.callbacks import ModelCheckpoint
 
 import numpy as np
 import shap
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 # enable memory growth
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -228,11 +228,22 @@ checkpoint_path = f'./model/cifar-10'
 model = tf.keras.models.load_model(checkpoint_path)
 
 # print(model.evaluate(test_x, test_y))
-from utils import *
 
 x_test = np.array(test_x)
 y_test = np.array(test_y)
 
-#print(model.evaluate(x_test, y_test))
+target = np.zeros(len(x_test))
+print(target.shape)
+print(target)
 
-make_targeted_cw_dataset(model, 4, x_test, y_test)
+# print(model.evaluate(test_x, test_y))
+from utils import *
+from son_cifar10 import *
+
+
+# target = np.ones(len(x_test)))
+# where = np.where(target == 1.)
+# target[where] = i
+
+
+#carlini_wagner_l2(model, x_test, targets= , targeted=True):
