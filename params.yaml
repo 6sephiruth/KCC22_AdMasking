@@ -2,12 +2,12 @@ batch_size: 64
 
 dataset: 'mnist' # cifar10
 attack_method: ''
-gpu_num: "0"
+gpu_num: "2"
 
 
 # model.py 참조
+# model_name: 'paper_mnist'
 model_name: 'paper_mnist'
-
 
 
 # model_train: 'cifar_vgg16' 

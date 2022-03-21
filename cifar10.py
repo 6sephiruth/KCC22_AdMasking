@@ -1,3 +1,4 @@
+from turtle import clear
 import pandas as pd
 import time
 import os
@@ -10,7 +11,7 @@ from keras.callbacks import ModelCheckpoint
 
 import numpy as np
 import shap
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 # enable memory growth
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -227,23 +228,38 @@ checkpoint_path = f'./model/cifar-10'
 
 model = tf.keras.models.load_model(checkpoint_path)
 
-# print(model.evaluate(test_x, test_y))
+from cifar_10_utils import *
 
-x_test = np.array(test_x)
-y_test = np.array(test_y)
+# x_test = test_x
+# y_test = test_y
 
-target = np.zeros(len(x_test))
-print(target.shape)
-print(target)
+# for i in range(10):
+#     i += 5
+    
+#     for j in range(10):
+#         print("{}-------{}".format(i, j))
+#         x_data = pickle.load(open(f'./model/cifar-10/perfect_targeted_cw/{i}-{j}','rb'))
 
-# print(model.evaluate(test_x, test_y))
-from utils import *
-from son_cifar10 import *
-
-
-# target = np.ones(len(x_test)))
-# where = np.where(target == 1.)
-# target[where] = i
+#         cifar_model_unifying(i, model, x_data)
+#         print()
+#         print()
 
 
-#carlini_wagner_l2(model, x_test, targets= , targeted=True):
+#948
+xx = pickle.load(open(f'./model/cifar-10/perfect_targeted_cw/4-7','rb'))
+
+x_data = pickle.load(open(f'./model/cifar-10/targeted_cw/4-7','rb'))
+
+pred = model.predict(x_data)
+pred = tf.nn.softmax(pred)
+pred = np.argmax(pred, axis=1)
+
+count = np.where(pred==7)
+print(count[0].shape)
+print(xx.shape)
+#print(x_data.shape)
+
+# y_data = pickle.load(open(f'./model/cifar-10/perfect_targeted_cw/y_full_data','rb'))
+
+# cifar_model_unifying(model, x_data[80000:85000], y_data[80000:85000])
+

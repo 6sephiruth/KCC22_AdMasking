@@ -25,6 +25,7 @@ from models import *
 from dataset_process import *
 from restore_ad import *
 
+
 def mkdir(dir_names):
     for d in dir_names:
         if not os.path.exists(d):
@@ -66,94 +67,6 @@ def cifar10_data():
     return (x_train, y_train), (x_test, y_test)
 
 
-# 소스코드 지저분하구나...... 규민아 나중에 다시 작업하자.... 후.
-#ㅇㄴㄻ햐ㅕㅇㅎㄴㅁ량ㅎ
-def make_targeted_cw_dataset(model, num, x_test, y_test):
-
-    num = num
-
-    for i in range(10):
-        print("=-=-=-=-=-=-=-=-=-=-=-=")
-        print(i)
-        if i == num:
-
-            where = np.where(y_test == num)
-            particular_data = x_test[where]
-            particular_data = tf.cast(particular_data, tf.float32)
-
-            pickle.dump(particular_data, open(f'./model/cifar-10/targeted_cw/{num}-{i}','wb'))
-
-        else:
-
-            adversarial_dataset = []
-
-            where = np.where(y_test == num)
-            particular_data = x_test[where]
-            particular_data = tf.cast(particular_data, tf.float32)
-
-            start_position = 0
-            end_point = 3
-            while(len(particular_data) > start_position):
-
-
-                particular_data = particular_data[start_position:end_point]
-
-                target = np.ones(len(particular_data))
-                where = np.where(target == 1.)
-
-                target[where] = i
-                
-                adversarial_dataset.append(carlini_wagner_l2(model, particular_data, y=target, targeted=True))
-
-                where = np.where(y_test == num)
-                particular_data = x_test[where]
-                particular_data = tf.cast(particular_data, tf.float32)
-                
-                # print("적대적 만들어진 갯수---------------------")
-                # print(len(x_test[where]))
-                # print(adversarial_dataset.shape)
-                start_position += 3
-                end_point += 3
-            particular_data = particular_data[start_position:]
-            target = np.ones(len(particular_data))
-            where = np.where(target == 1.)
-
-            target[where] = i
-            
-            adversarial_dataset.append(carlini_wagner_l2(model, particular_data, y=target, targeted=True))
-
-            adversarial_dataset = np.array(adversarial_dataset)
-
-            ###############################################
-
-            adver_data = []
-
-            for ii in range(len(data) -1):
-
-                for jj in range(len(data[ii])):
-
-                    adver_data.append(data[ii][jj])
-
-            data = np.array(adver_data)
-
-            pred = model.predict(data)
-            pred = tf.nn.softmax(pred)
-            pred = np.argmax(pred, axis=1)
-
-            position = np.where(pred == i)
-
-            adversarial_dataset = data[position]
-            #########################################
-
-
-
-
-            pickle.dump(adversarial_dataset, open(f'./model/cifar-10/targeted_cw/{num}-{i}','wb'))
-
-
-
-
-
 def neuron_activation_analyze(model, data, num1, num2):
 
     # 여기서 data는 pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
@@ -167,6 +80,7 @@ def neuron_activation_analyze(model, data, num1, num2):
         intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))    
         
         total_activation = np.append(total_activation, intermediate_output, axis=1)
+
 
     non_activation_position = np.where(total_activation <= 0)
     activation_position = np.where(total_activation > 0)
@@ -225,7 +139,8 @@ def neuron_activation_analyze(model, data, num1, num2):
     arrange_result[4] = copy_top_15_result
     arrange_result[5] = copy_top_20_result
 
-    pickle.dump(arrange_result, open(f'./model/paper_mnist/targeted_analysis/{num1}-{num2}','wb'))
+    # pickle.dump(arrange_result, open(f'./model/paper_mnist/targeted_analysis/{num1}-{num2}','wb'))
+
     #### pickle.dump(arrange_result, open(f'./dataset/targeted_half_analysis/{num1}-{num2}','wb'))
 
 def model_weight_analysis(analysis_num, model, dataset):
@@ -293,6 +208,9 @@ def model_weight_analysis(analysis_num, model, dataset):
 
     intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
 
+    model_hidden_weight = [cp_weight0, cp_weight1]
+    intermediate_layer_model.set_weights(model_hidden_weight)
+    
     layer_1_output_1 = np.array(intermediate_layer_model(dataset))
     layer_1_output_3 = np.array(intermediate_layer_model(dataset))
     layer_1_output_5 = np.array(intermediate_layer_model(dataset))
@@ -470,6 +388,13 @@ def model_weight_analysis(analysis_num, model, dataset):
     layer_6_output_10 = model_layer_6.predict(layer_4_output_10)
     layer_6_output_15 = model_layer_6.predict(layer_4_output_15)
     layer_6_output_20 = model_layer_6.predict(layer_4_output_20)
+
+    top_1_result = top_1_result[1600:]
+    top_3_result = top_3_result[1600:]
+    top_5_result = top_5_result[1600:]
+    top_10_result = top_10_result[1600:]
+    top_15_result = top_15_result[1600:]
+    top_20_result = top_20_result[1600:]
 
     #--------------------------------------------------------------------------------------------------------
     model_layer_7 = tf.keras.models.Sequential([
@@ -616,8 +541,9 @@ def model_weight_analysis(analysis_num, model, dataset):
 
 
 #========================================================================================================
-def model_compress(model, dataset, y_full_data):
-
+def model_compress(analysis_num ,model, dataset):
+#def model_compress(model, dataset, y_full_data):
+    
     adversarial_activation_position = np.zeros((6,42048))
     normal_activation_position = np.zeros((6,42048))
 
@@ -631,9 +557,9 @@ def model_compress(model, dataset, y_full_data):
                 position = np.where(data[k] == 1)
 
                 if i == j:
-                    normal_activation_position[k][position] = 1 
-                else:   
-                    adversarial_activation_position[k][position] = 1 
+                    normal_activation_position[k][position] = 1
+                else:
+                    adversarial_activation_position[k][position] = 1
 
     top_1_result = adversarial_activation_position[0] - normal_activation_position[0]
     position = np.where(top_1_result != 1)
@@ -659,7 +585,6 @@ def model_compress(model, dataset, y_full_data):
     position = np.where(top_20_result != 1)
     top_20_result[position] = 0
 
-
     ####################################################################
     cp_weight0 = model.model.get_weights()[0]
     cp_weight1 = model.model.get_weights()[1]
@@ -674,6 +599,9 @@ def model_compress(model, dataset, y_full_data):
 
     intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
 
+    model_hidden_weight = [cp_weight0, cp_weight1]
+    intermediate_layer_model.set_weights(model_hidden_weight)
+    
     layer_1_output_1 = np.array(intermediate_layer_model(dataset))
     layer_1_output_3 = np.array(intermediate_layer_model(dataset))
     layer_1_output_5 = np.array(intermediate_layer_model(dataset))
@@ -852,6 +780,13 @@ def model_compress(model, dataset, y_full_data):
     layer_6_output_15 = model_layer_6.predict(layer_4_output_15)
     layer_6_output_20 = model_layer_6.predict(layer_4_output_20)
 
+    top_1_result = top_1_result[1600:]
+    top_3_result = top_3_result[1600:]
+    top_5_result = top_5_result[1600:]
+    top_10_result = top_10_result[1600:]
+    top_15_result = top_15_result[1600:]
+    top_20_result = top_20_result[1600:]
+
     #--------------------------------------------------------------------------------------------------------
     model_layer_7 = tf.keras.models.Sequential([
         keras.layers.Dense(1024, activation='relu', input_shape=(1600,))
@@ -977,31 +912,32 @@ def model_compress(model, dataset, y_full_data):
     layer_9_output_15 = np.argmax(layer_9_output_15, axis=1)
     layer_9_output_20 = np.argmax(layer_9_output_20, axis=1)
 
-    # k0 = np.where(layer_9_output_1 == analysis_num)[0]
-    # k1 = np.where(layer_9_output_3 == analysis_num)[0]
-    # k2 = np.where(layer_9_output_5 == analysis_num)[0]
-    # k3 = np.where(layer_9_output_10 == analysis_num)[0]
-    # k4 = np.where(layer_9_output_15 == analysis_num)[0]
-    # k5 = np.where(layer_9_output_20 == analysis_num)[0]
+    k0 = np.where(layer_9_output_1 == analysis_num)[0]
+    k1 = np.where(layer_9_output_3 == analysis_num)[0]
+    k2 = np.where(layer_9_output_5 == analysis_num)[0]
+    k3 = np.where(layer_9_output_10 == analysis_num)[0]
+    k4 = np.where(layer_9_output_15 == analysis_num)[0]
+    k5 = np.where(layer_9_output_20 == analysis_num)[0]
 
-    # print("1%  {: .2f}".format(len(k0) / len(dataset)*100))
-    # print("3%  {: .2f}".format(len(k1) / len(dataset)*100))
-    # print("5%  {: .2f}".format(len(k2) / len(dataset)*100))
-    # print("10%  {: .2f}".format(len(k3) / len(dataset)*100))
-    # print("15%  {: .2f}".format(len(k4) / len(dataset)*100))
-    # print("20%  {: .2f}".format(len(k5) / len(dataset)*100))
+    print("1%  {: .2f}".format(len(k0) / len(dataset)*100))
+    print("3%  {: .2f}".format(len(k1) / len(dataset)*100))
+    print("5%  {: .2f}".format(len(k2) / len(dataset)*100))
+    print("10%  {: .2f}".format(len(k3) / len(dataset)*100))
+    print("15%  {: .2f}".format(len(k4) / len(dataset)*100))
+    print("20%  {: .2f}".format(len(k5) / len(dataset)*100))
 
-    from sklearn.metrics import accuracy_score
-    accuracy_1 = accuracy_score(layer_9_output_1, y_full_data)
-    accuracy_3 = accuracy_score(layer_9_output_3, y_full_data)
-    accuracy_5 = accuracy_score(layer_9_output_5, y_full_data)
-    accuracy_10 = accuracy_score(layer_9_output_10, y_full_data)
-    accuracy_15 = accuracy_score(layer_9_output_15, y_full_data)
-    accuracy_20 = accuracy_score(layer_9_output_20, y_full_data)
 
-    print(accuracy_1)
-    print(accuracy_3)
-    print(accuracy_5)
-    print(accuracy_10)
-    print(accuracy_15)
-    print(accuracy_20)
+    # from sklearn.metrics import accuracy_score
+    # accuracy_1 = accuracy_score(layer_9_output_1, y_full_data)
+    # accuracy_3 = accuracy_score(layer_9_output_3, y_full_data)
+    # accuracy_5 = accuracy_score(layer_9_output_5, y_full_data)
+    # accuracy_10 = accuracy_score(layer_9_output_10, y_full_data)
+    # accuracy_15 = accuracy_score(layer_9_output_15, y_full_data)
+    # accuracy_20 = accuracy_score(layer_9_output_20, y_full_data)
+
+    # print(accuracy_1)
+    # print(accuracy_3)
+    # print(accuracy_5)
+    # print(accuracy_10)
+    # print(accuracy_15)
+    # print(accuracy_20)

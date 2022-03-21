@@ -87,117 +87,16 @@ else:
 
 model.trainable = False
 
-# ## 이거 CIFAR 10 다 끝나면 하는걸로
-# for i in range(10):
-#     for j in range(10):
-#         print("{}---------------------{}".format(i,j))
+from pruning_defense import *
 
-#         data = pickle.load(open(f'./model/paper_mnist/targeted_cw/{i}-{j}','rb'))
+particular_data_position = np.where(y_test == 3)
+particular_data = x_test[particular_data_position]
 
-#         pred = model.predict(data)
-#         pred = tf.nn.softmax(pred)
-#         pred = np.argmax(pred, axis=1)
+adver_data = pickle.load(open(f'./model/paper_mnist/targeted_cw/3-5','rb'))
 
-#         position = np.where(pred == j)
-
-#         pickle.dump(data[position], open(f'./model/paper_mnist/perfect_targeted_cw/{i}-{j}','wb'))
+top_adversarial_actvation_select(model, particular_data, adver_data, 3, 5)
 
 
-
-
-# adver_data = []
-# y_adver_data = []
-
-# for i in range(10):
-#     for j in range(10):
-
-#         data = pickle.load(open(f'./model/paper_mnist/perfect_targeted_cw/{i}-{j}','rb'))
-
-#         for k in range(len(data)):
-            
-#             adver_data.append(data[k])
-#             y_adver_data.append(i)
-
-# adver_data = np.array(adver_data)
-# pickle.dump(adver_data, open(f'./model/paper_mnist/perfect_targeted_cw/x_full_data','wb'))
-
-# y_adver_data = np.array(y_adver_data)
-# pickle.dump(y_adver_data, open(f'./model/paper_mnist/perfect_targeted_cw/y_full_data','wb'))
-
-
-
-
-# x_data = pickle.load(open(f'./model/paper_mnist/perfect_targeted_cw/x_full_data','rb'))
-
-# y_data = pickle.load(open(f'./model/paper_mnist/perfect_targeted_cw/y_full_data','rb'))
-
-# model_compress(model, x_data[:30000], y_data[:30000])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# num = 9
-
-# for num2 in range(10):
-
-#     print("{}----------------".format(num2))
-#     print()
-#     data = pickle.load(open(f'./model/paper_mnist/targeted_cw/{num}-{num2}','rb'))
-
-
-#     model_compress(num, model, data)
-#     print()
-#     print()
-
-
-
-# print(model.evaluate(x_test, y_test))    
-# print(x_train.shape)
-# print(x_test.shape)
-
-
-
-
-
-
-
-
-
-
-# for num in range(10):
-#     for num2 in range(10):
-#         if num == num2:
-#             data = pickle.load(open(f'./model/paper_mnist/targeted_cw/{num}-{num2}','rb'))
-#             data = np.array(data)
-            
-#             pred = model.predict(data)
-#             pred = tf.nn.softmax(pred)
-#             pred = np.argmax(pred, axis=1)
-
-#             position = np.where(pred == num2)
-
-#             data = data[position]
-
-#             pickle.dump(data, open(f'./model/paper_mnist/targeted_cw/{num}-{num2}','wb'))
-
-
-
-
-# print(data.shape)
-# pred = model.predict(data)
-# pred = tf.nn.softmax(pred)
-# pred = np.argmax(pred, axis=1)
-# print(pred)
+# x_data = pickle.load(open(f'./model/paper_mnist/perfect_targeted_cw/4-9','rb'))
+# print(x_data.shape)
+# neuron_activation_analyze(model, x_data, 333,333)
