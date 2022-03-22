@@ -230,36 +230,29 @@ model = tf.keras.models.load_model(checkpoint_path)
 
 from cifar_10_utils import *
 
-# x_test = test_x
-# y_test = test_y
+x_test = test_x
+y_test = test_y
 
-# for i in range(10):
-#     i += 5
+x_test = np.array(x_test)
+y_test = np.array(y_test)
+
+from pruning_defense import *
+
+for i in range(10):
     
-#     for j in range(10):
-#         print("{}-------{}".format(i, j))
-#         x_data = pickle.load(open(f'./model/cifar-10/perfect_targeted_cw/{i}-{j}','rb'))
+    for j in range(10):
+        if i == j:
+            print("{} --- {}".format(i, j))
+            particular_data_position = np.where(y_test == i)
+            particular_data = x_test[particular_data_position]
 
-#         cifar_model_unifying(i, model, x_data)
-#         print()
-#         print()
+            normal_prunning(model, particular_data, i)
+            
+        # else:
+        #     print("{} --- {}".format(i, j))
+        #     particular_data_position = np.where(y_test == i)
+        #     particular_data = x_test[particular_data_position]
 
+        #     adver_data = pickle.load(open(f'./model/cifar-10/dataset/targeted_cw/{i}-{j}','rb'))
 
-#948
-xx = pickle.load(open(f'./model/cifar-10/perfect_targeted_cw/4-7','rb'))
-
-x_data = pickle.load(open(f'./model/cifar-10/targeted_cw/4-7','rb'))
-
-pred = model.predict(x_data)
-pred = tf.nn.softmax(pred)
-pred = np.argmax(pred, axis=1)
-
-count = np.where(pred==7)
-print(count[0].shape)
-print(xx.shape)
-#print(x_data.shape)
-
-# y_data = pickle.load(open(f'./model/cifar-10/perfect_targeted_cw/y_full_data','rb'))
-
-# cifar_model_unifying(model, x_data[80000:85000], y_data[80000:85000])
-
+        #     top_adversarial_actvation_select(model, particular_data, adver_data, i, j)

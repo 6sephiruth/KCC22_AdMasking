@@ -89,14 +89,40 @@ model.trainable = False
 
 from pruning_defense import *
 
-particular_data_position = np.where(y_test == 3)
-particular_data = x_test[particular_data_position]
+# for i in range(10):
+    
+#     for j in range(10):
+#         if i == j:
+#             particular_data_position = np.where(y_test == i)
+#             particular_data = x_test[particular_data_position]
 
-adver_data = pickle.load(open(f'./model/paper_mnist/targeted_cw/3-5','rb'))
+#             normal_prunning(model, particular_data, i)
+        # else:
+        #     particular_data_position = np.where(y_test == i)
+        #     particular_data = x_test[particular_data_position]
 
-top_adversarial_actvation_select(model, particular_data, adver_data, 3, 5)
+        #     adver_data = pickle.load(open(f'./model/paper_mnist/dataset/targeted_cw/{i}-{j}','rb'))
+
+        #     top_adversarial_actvation_select(model, particular_data, adver_data, i, j)
+
+for analysis_num in range(10):
+    for j in range(10):
+        print("----------------------")
+        print(analysis_num, j)
+        x_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/{analysis_num}-{j}','rb'))
+
+        # pp = model.predict(x_data)
+        # pp = tf.nn.softmax(pp)
+        # pp = np.argmax(pp, axis=1)
+        # print(pp[:200])
+        # time.sleep(1)
+        mnist_model_compress(analysis_num ,model, x_data)
+        print()
 
 
-# x_data = pickle.load(open(f'./model/paper_mnist/perfect_targeted_cw/4-9','rb'))
-# print(x_data.shape)
-# neuron_activation_analyze(model, x_data, 333,333)
+
+
+# x_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/x_full_data','rb'))
+# y_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/y_full_data','rb'))
+
+# mnist_model_compress(model, x_data[50000:60000], y_data[50000:60000])
