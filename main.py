@@ -105,24 +105,32 @@ from pruning_defense import *
 
         #     top_adversarial_actvation_select(model, particular_data, adver_data, i, j)
 
-for analysis_num in range(10):
-    for j in range(10):
-        print("----------------------")
-        print(analysis_num, j)
-        x_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/{analysis_num}-{j}','rb'))
+# for analysis_num in range(10):
+#     for j in range(10):
+#         print("----------------------")
+#         print(analysis_num, j)
+#         x_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/{analysis_num}-{j}','rb'))
 
-        # pp = model.predict(x_data)
-        # pp = tf.nn.softmax(pp)
-        # pp = np.argmax(pp, axis=1)
-        # print(pp[:200])
-        # time.sleep(1)
-        mnist_model_compress(analysis_num ,model, x_data)
-        print()
-
-
+#         # pp = model.predict(x_data)
+#         # pp = tf.nn.softmax(pp)
+#         # pp = np.argmax(pp, axis=1)
+#         # print(pp[:200])
+#         # time.sleep(1)
+#         mnist_model_compress(analysis_num ,model, x_data)
+#         print()
 
 
-# x_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/x_full_data','rb'))
-# y_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/y_full_data','rb'))
 
-# mnist_model_compress(model, x_data[50000:60000], y_data[50000:60000])
+
+
+# for i in range(10):
+#     for j in range(10):
+#         dataset = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/{i}-{j}','rb'))
+#         print("{}-------{}".format(i,j))
+#         mnist_model_compress(i ,model, dataset)
+#         print()
+
+x_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/x_full_data','rb'))
+y_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/y_full_data','rb'))
+
+mnist_model_compress(model, x_data[90000:], y_data[90000:])

@@ -238,21 +238,44 @@ y_test = np.array(y_test)
 
 from pruning_defense import *
 
-for i in range(10):
+# for i in range(10):
     
-    for j in range(10):
-        if i == j:
-            print("{} --- {}".format(i, j))
-            particular_data_position = np.where(y_test == i)
-            particular_data = x_test[particular_data_position]
+#     for j in range(10):
+#         if i == j:
+#             print("{} --- {}".format(i, j))
+#             particular_data_position = np.where(y_test == i)
+#             particular_data = x_test[particular_data_position]
 
-            normal_prunning(model, particular_data, i)
+#             normal_prunning(model, particular_data, i)
             
-        # else:
-        #     print("{} --- {}".format(i, j))
-        #     particular_data_position = np.where(y_test == i)
-        #     particular_data = x_test[particular_data_position]
+#         else:
+#             print("{} --- {}".format(i, j))
+#             particular_data_position = np.where(y_test == i)
+#             particular_data = x_test[particular_data_position]
 
-        #     adver_data = pickle.load(open(f'./model/cifar-10/dataset/targeted_cw/{i}-{j}','rb'))
+#             adver_data = pickle.load(open(f'./model/cifar-10/dataset/targeted_cw/{i}-{j}','rb'))
 
-        #     top_adversarial_actvation_select(model, particular_data, adver_data, i, j)
+#             top_adversarial_actvation_select(model, particular_data, adver_data, i, j)
+
+# i = 9
+# kk = [4]
+# for j in kk:
+#     print("{} --- {}".format(i, j))
+#     particular_data_position = np.where(y_test == i)
+#     particular_data = x_test[particular_data_position]
+
+#     adver_data = pickle.load(open(f'./model/cifar-10/dataset/targeted_cw/{i}-{j}','rb'))
+
+#     top_adversarial_actvation_select(model, particular_data, adver_data, i, j)
+
+# for i in range(9):
+#     for j in range(10):
+#         dataset = pickle.load(open(f'./model/cifar-10/dataset/perfect_targeted_cw/{i}-{j}','rb'))
+#         print("{}-------{}".format(i,j))
+#         cifar10_model_compress(i ,model, dataset)
+#         print()
+
+x_data = pickle.load(open(f'./model/cifar-10/dataset/perfect_targeted_cw/x_full_data','rb'))
+y_data = pickle.load(open(f'./model/cifar-10/dataset/perfect_targeted_cw/y_full_data','rb'))
+
+cifar10_model_compress(model, x_data[5000:10000], y_data[5000:10000])
