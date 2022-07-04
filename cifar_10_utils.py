@@ -17,11 +17,11 @@ def cifar_10_neuron_activation_analyze(model, data, num1, num2):
     total_activation = np.empty((len(data),0))
 
     for each_layer in range(len(model.layers)-1):
-        
+
         intermediate_layer_model = tf.keras.Model(inputs=model.input, outputs=model.layers[each_layer].output)
         intermediate_output = intermediate_layer_model(data)
-        intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))    
-        
+        intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))
+
         total_activation = np.append(total_activation, intermediate_output, axis=1)
 
     non_activation_position = np.where(total_activation <= 0)
@@ -33,7 +33,7 @@ def cifar_10_neuron_activation_analyze(model, data, num1, num2):
     total_activation = np.sum(total_activation, axis=0)
 
     sort_total_activation = np.sort(total_activation)
-    
+
     top_1_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*1))):]
     top_3_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*3))):]
     top_5_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*5))):]
@@ -87,7 +87,7 @@ def cifar_10_neuron_activation_analyze(model, data, num1, num2):
 # 압축
 def cifar_model_unifying(analysis_num ,model, dataset):
 # def cifar_model_unifying(model, dataset, y_full_data):
-    
+
     model_activation_count = 0
 
     # model의 전체 actvation 개수를 구한다. ※ 마지막 출력 layer 제외
@@ -106,7 +106,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
     normal_activation_position = np.zeros((6, model_activation_count))
 
     for i in range(10):
-        
+
         for j in range(10):
 
             for k in range(6):
@@ -115,9 +115,9 @@ def cifar_model_unifying(analysis_num ,model, dataset):
                 position = np.where(data[k] == 1)
 
                 if i == j:
-                    normal_activation_position[k][position] = 1 
-                else:   
-                    adversarial_activation_position[k][position] = 1 
+                    normal_activation_position[k][position] = 1
+                else:
+                    adversarial_activation_position[k][position] = 1
 
     top_1_result = adversarial_activation_position[0] - normal_activation_position[0]
     position = np.where(top_1_result != 1)
@@ -179,7 +179,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
     # adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
 
     # for dataset_count in range(len(dataset)):
-    
+
     #     layer_1_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
     #     layer_1_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
     #     layer_1_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
@@ -224,7 +224,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
 
     for dataset_count in range(len(dataset)):
-        
+
         layer_2_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
         layer_2_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
         layer_2_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
@@ -269,7 +269,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
 
     for dataset_count in range(len(dataset)):
-        
+
         layer_3_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
         layer_3_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
         layer_3_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
@@ -340,10 +340,10 @@ def cifar_model_unifying(analysis_num ,model, dataset):
                 first_input_shape_value = 32
             elif c == 32:
                 input_shape_value = 16
-                first_input_shape_value = 16          
+                first_input_shape_value = 16
             elif c == 64:
                 input_shape_value = 8
-                first_input_shape_value = 8 
+                first_input_shape_value = 8
 
 
 
@@ -432,7 +432,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
             adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
 
             for dataset_count in range(len(dataset)):
-                
+
                 layer_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
                 layer_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
                 layer_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
@@ -503,7 +503,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
             adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
 
             for dataset_count in range(len(dataset)):
-                
+
                 layer_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
                 layer_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
                 layer_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
@@ -566,7 +566,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
                 adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
 
                 for dataset_count in range(len(dataset)):
-                    
+
                     layer_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
                     layer_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
                     layer_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
@@ -584,11 +584,11 @@ def cifar_model_unifying(analysis_num ,model, dataset):
             model_layer = tf.keras.models.Sequential([
                 tf.keras.layers.BatchNormalization(input_shape=(input_shape_value ,input_shape_value,c))
             ])
-                        
+
             model_hidden_weight = [model.get_weights()[hidden_weight_count], model.get_weights()[hidden_weight_count + 1], model.get_weights()[hidden_weight_count + 2], model.get_weights()[hidden_weight_count + 3]]
             model_layer.set_weights(model_hidden_weight)
             hidden_weight_count += 4
-            
+
             layer_output_1 = model_layer.predict(layer_output_1)
             layer_output_3 = model_layer.predict(layer_output_3)
             layer_output_5 = model_layer.predict(layer_output_5)
@@ -611,7 +611,7 @@ def cifar_model_unifying(analysis_num ,model, dataset):
             adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
 
             for dataset_count in range(len(dataset)):
-                
+
                 layer_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
                 layer_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
                 layer_output_5[dataset_count][adversarial_actvation_position_position_5] = 0

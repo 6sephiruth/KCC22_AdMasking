@@ -16,7 +16,7 @@ class mnist_cnn(Model):
             keras.layers.Dense(64, activation='relu'),
             keras.layers.Dense(10)
         ])
-        
+
         return model
 
     def call(self, inputs):
@@ -41,9 +41,9 @@ class paper_mnist(Model):
             keras.layers.Dense(1024),
             keras.layers.Dense(64, activation='relu'),
             keras.layers.Dense(10),
-        
+
         ])
-        
+
         return model
 
     def call(self, inputs):
@@ -63,9 +63,9 @@ class ppaper_mnist(Model):
             keras.layers.Activation(tf.nn.relu),
             keras.layers.Flatten(),
             keras.layers.Dense(10),
-        
+
         ])
-        
+
         return model
 
     def call(self, inputs):

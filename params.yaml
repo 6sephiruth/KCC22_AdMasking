@@ -10,8 +10,8 @@ gpu_num: "2"
 model_name: 'paper_mnist'
 
 
-# model_train: 'cifar_vgg16' 
+# model_train: 'cifar_vgg16'
 
-attack_eps: 
+attack_eps:
 
 xai_method: ''

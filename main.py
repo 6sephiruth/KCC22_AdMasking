@@ -46,7 +46,7 @@ if DATASET == 'mnist':
 elif DATASET == 'cifar10':
     train, test = cifar10_data()
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    
+
 x_train, y_train = train
 x_test, y_test = test
 
@@ -61,9 +61,9 @@ if exists(f'model/{MODEL_NAME}/saved_model.pb'):
 else:
 
     # MNIST 학습 checkpoint
-    checkpoint = ModelCheckpoint(checkpoint_path, 
-                                save_best_only=True, 
-                                save_weights_only=True, 
+    checkpoint = ModelCheckpoint(checkpoint_path,
+                                save_best_only=True,
+                                save_weights_only=True,
                                 monitor='val_acc',
                                 verbose=1)
     if DATASET == 'mnist':
@@ -73,7 +73,7 @@ else:
                     metrics=['accuracy'])
 
         model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
-    
+
     # if DATASET == 'cifar10':
 
     #     model.compile(optimizer='adam',
@@ -90,7 +90,7 @@ model.trainable = False
 from pruning_defense import *
 
 # for i in range(10):
-    
+
 #     for j in range(10):
 #         if i == j:
 #             particular_data_position = np.where(y_test == i)
