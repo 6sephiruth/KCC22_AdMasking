@@ -1,17 +1,11 @@
 batch_size: 64
 
 dataset: 'mnist' # cifar10
-attack_method: ''
+attack_method: 'targeted_cw'
 gpu_num: "2"
 
-
-# model.py 참조
-# model_name: 'paper_mnist'
 model_name: 'paper_mnist'
 
+# attack_eps:
 
-# model_train: 'cifar_vgg16'
-
-attack_eps:
-
-xai_method: ''
+# xai_method: ''
