@@ -55,18 +55,56 @@ def cifar10_data():
     dataset = tf.keras.datasets.cifar10
 
     (x_train, y_train), (x_test, y_test) = dataset.load_data()
-    
-    x_train = x_train.reshape((50000, 32, 32, 3))
-    x_test = x_test.reshape((10000, 32, 32, 3))
+
+    # x_train = x_train.astype('float32')
+    # x_train = tf.keras.applications.resnet50.preprocess_input(x_train)
+    # x_test = x_test.astype('float32')
+    # x_test = tf.keras.applications.resnet50.preprocess_input(x_test)
+
 
     # # MIN, MAX normalization
     # x_train = (x_train - np.min(x_train))/ (np.max(x_train) - np.min(x_train))
     # x_test = (x_test - np.min(x_test))/ (np.max(x_test) - np.min(x_test))
 
     # 이미지를 0~1의 범위로 낮추기 위한 Normalization
-    x_train, x_test = x_train / 255.0, x_test / 255.0
+    x_train, x_test = x_train / np.max(x_train), x_test / np.max(x_test)
 
     return (x_train, y_train), (x_test, y_test)
+
+def check_activation_neuron(model, dataset, k_persent):
+    # 여기서 데이터셋은 ex) cw-0_3
+    # return : threshold를 통해 활성화된 상위 k%의 뉴런 위치를 전달해줌
+
+    threshold = 0
+    total_activation = np.empty((len(dataset),0))
+
+    for each_layer in range(len(model.model.layers)-1):
+        
+        intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[each_layer].output)
+        intermediate_output = intermediate_layer_model(dataset)
+        intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))
+        
+        total_activation = np.append(total_activation, intermediate_output, axis=1)
+
+    non_activation_position = np.where(total_activation <= threshold)
+    activation_position = np.where(total_activation > threshold)
+
+    total_activation[non_activation_position] = 0
+    total_activation[activation_position] = 1
+
+    total_activation = np.sum(total_activation, axis=0)
+
+    sort_total_activation = np.sort(total_activation)
+
+    top_k_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*k_persent))):]
+    top_k_position_activation = np.where(top_k_activation[0] <= total_activation)
+
+    top_k_result = np.zeros_like(total_activation)
+    top_k_result[top_k_position_activation] = 1
+
+    return top_k_result
+
+
 
 
 # def neuron_activation_analyze(model, data, num1, num2):

@@ -3,6 +3,7 @@
 
 from utils import *
 #from attack_method import *
+from dataset_process import *
 
 def main():
 
@@ -31,7 +32,7 @@ def main():
     ATTACK_METHOD = params_loaded['attack_method']
     # ATTACK_EPS = params_loaded['attack_eps']
 
-    datadir = ['model', 'model/' + MODEL_NAME, 'dataset', 'dataset/' + ATTACK_METHOD]
+    datadir = ['model', 'model/' + MODEL_NAME, 'dataset', 'dataset/' + ATTACK_METHOD, 'dataset/' +'origin_data']
     mkdir(datadir)
 
     # dataset load
@@ -39,8 +40,8 @@ def main():
         train, test = mnist_data()
     elif DATASET == 'cifar10':
         train, test = cifar10_data()
-        loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-
+        # loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        
     x_train, y_train = train
     x_test, y_test = test
 
@@ -66,19 +67,62 @@ def main():
                         metrics=['accuracy'])
             model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint],)
 
-        # elif DATASET == 'cifar10':
+        elif DATASET == 'cifar10':
+
+            model.compile(optimizer='SGD', 
+                loss='sparse_categorical_crossentropy',
+                metrics = ['accuracy'])
+
+            model.fit(x_train, y_train, epochs=10, shuffle=True, validation_data=(x_test, y_test), callbacks=[checkpoint], batch_size=64)
 
         model.save(checkpoint_path)
         model = tf.keras.models.load_model(checkpoint_path)
 
     model.trainable = False
 
-    from dataset_process import make_targeted_cw
-    make_targeted_cw(model, x_test, y_test)
+    # origin & targeted attack 데이터 생성
+    if not os.path.isfile(f'./dataset/targeted_cw/{model.name}-0_1'):
 
+        make_origin_data(model, x_test, y_test)
+        make_targeted_cw(model, x_test, y_test)
+
+    PRUNING_LABEL = params_loaded['pruning_label']
+    PRUNING_METHOD = params_loaded['pruning_method']
+    PRUNING_SELECTION = params_loaded['pruning_selection']
+    PRUNING_PERCENT = params_loaded['pruning_percent']
+
+    if PRUNING_METHOD == 'back' and PRUNING_SELECTION == 'part':
+        
+        
+        check_activation_neuron(model, , PRUNING_PERCENT)
+
+
+
+
+    # for layers in model.model.layers:
+    #     a = layers.get_weights()[0]
+    #     print(a)
+    #     print(a.shape)
+    #     #print(a.shape)
+    #     time.sleep(4)    
+    # print(model.model.summary())
+    # intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[1].output)
+    # intermediate_output = intermediate_layer_model(x_test)
+
+    # intermediate_output =  intermediate_output.numpy()
+    # print(type(intermediate_output))
+    # print(intermediate_output.reshape((len(intermediate_output), -1)).shape)
+
+
+
+    # # targeted attack 데이터 생성
+    # if not os.path.isfile('./dataset/targeted_cw/{model.name}-0_0'):
+    #     make_targeted_cw(model, x_test, y_test)
 
 if __name__ == '__main__':
     main()
+
+
 
 #from pruning_defense import *
 
