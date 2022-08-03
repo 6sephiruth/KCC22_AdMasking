@@ -1,13 +1,13 @@
 batch_size: 64
 
 attack_method: 'targeted_cw'
-gpu_num: "1"
+gpu_num: "2"
 
-dataset: 'mnist'
-model_name: 'paper_mnist'
+# dataset: 'mnist'
+# model_name: 'paper_mnist'
 
-# dataset: 'cifar10' # cifar10
-# model_name: 'resnet50_cifar10'
+dataset: 'cifar10' # cifar10
+model_name: 'resnet50_cifar10'
 
 pruning_label: 0
 pruning_percent: 4

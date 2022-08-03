@@ -71,7 +71,7 @@ def cifar10_data():
 
     return (x_train, y_train), (x_test, y_test)
 
-def check_activation_neuron(model, dataset, k_persent):
+def threshold_activation(model, dataset):
     # 여기서 데이터셋은 ex) cw-0_3
     # return : threshold를 통해 활성화된 상위 k%의 뉴런 위치를 전달해줌
 
@@ -92,9 +92,22 @@ def check_activation_neuron(model, dataset, k_persent):
     total_activation[non_activation_position] = 0
     total_activation[activation_position] = 1
 
-    total_activation = np.sum(total_activation, axis=0)
+    return total_activation
 
-    sort_total_activation = np.sort(total_activation)
+def actvation_neuron_compare(normal_activation, adver_activation, k_persent):
+    """
+    # 정상, 적대적 actvation 중, 문제가 있는 activation만 추출
+    """
+    
+    problem_activation = adver_activation - normal_activation
+
+    problem_activation_position = np.zeros_like(problem_activation)
+
+    problem_activation_position[np.where(problem_activation==1)] = 1
+
+    problem_activation_position = np.sum(problem_activation_position, axis=0)
+
+    sort_total_activation = np.sort(problem_activation_position)
 
     top_k_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*k_persent))):]
     top_k_position_activation = np.where(top_k_activation[0] <= total_activation)

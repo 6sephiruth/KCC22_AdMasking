@@ -81,22 +81,104 @@ def main():
     model.trainable = False
 
     # origin & targeted attack 데이터 생성
-    if not os.path.isfile(f'./dataset/targeted_cw/{model.name}-0_1'):
-
-        make_origin_data(model, x_test, y_test)
-        make_targeted_cw(model, x_test, y_test)
-
-    PRUNING_LABEL = params_loaded['pruning_label']
-    PRUNING_METHOD = params_loaded['pruning_method']
-    PRUNING_SELECTION = params_loaded['pruning_selection']
-    PRUNING_PERCENT = params_loaded['pruning_percent']
-
-    if PRUNING_METHOD == 'back' and PRUNING_SELECTION == 'part':
+    # if not os.path.isfile(f'./dataset/targeted_cw/{model.name}-0_1'):
         
-        
-        check_activation_neuron(model, , PRUNING_PERCENT)
+    #     make_origin_data(model, x_test, y_test)
+    #     make_targeted_cw(model, x_test, y_test)
+
+    # print(model.model.summary())
+    # print(model.model.get_weights()[0].shape)
+    # print(model.model.get_weights()[1].shape)
+    # print(model.model.get_weights()[2].shape)
+    # print(model.model.get_weights()[3].shape)
+
+    # intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[0].output)
+    # layer_1_output_1 = np.array(intermediate_layer_model(dataset))
 
 
+    from keras.models import Model 
+
+
+
+
+    # get_1st_layer_output = K.function([model.layers[0].input],
+    #                                 [model.layers[1].output])
+    # layer_output = get_1st_layer_output([X])
+    
+    # print(model.model.layers[0].name) # 이름 얻는 방법
+    # print(model.model.layers[1].name)
+    # print(model.model.layers[2].name)
+
+    a = model.model.get_layer("dense_2").get_weights()
+    print("-----")
+    print(a)
+    print(a[0].shape)
+    print(a[1].shape)
+    print(a[2].shape)
+
+
+
+
+    ##########################
+    def load_normal_activation():
+        total_normal_activation = []
+
+        for each_label in range(10):
+
+            each_normal_input = pickle.load(open(f'./dataset/origin_data/{model.name}-{each_label}','rb'))
+
+            each_threshold_actvation = threshold_activation(model, each_normal_input)
+
+            for i in range(len(each_normal_input)):
+                total_normal_activation.append(each_threshold_actvation[i])
+
+        total_normal_activation = np.array(total_normal_activation)
+
+
+
+    def load_adver_activation():
+        total_adver_activation = []
+
+        for each_label in range(10):
+            
+            temporarily_actvation = None
+
+            for each_attack_label in range(10):
+
+                if each_label != each_attack_label:
+            
+                    each_adver_input = pickle.load(open(f'./dataset/targeted_cw/{model.name}-{each_label}_{each_attack_label}','rb'))
+
+                    each_threshold_actvation = threshold_activation(model, each_adver_input)
+                    
+                    if temporarily_actvation == None:
+                        temporarily_actvation = each_threshold_actvation
+                    else:
+                        temporarily_actvation += each_threshold_actvation
+
+            each_threshold_actvation[np.where(each_threshold_actvation > 0)] = 1
+
+            for i in range(len(each_normal_input)):
+                total_adver_activation.append(each_threshold_actvation[i])
+
+        total_adver_activation = np.array(total_adver_activation)
+
+
+
+
+
+
+
+
+
+    #     normal_activation = 
+
+
+    # result = threshold_activation(model, input_dataset)
+
+    # print(actvation_dataset.shape)
+    # print(result.shape)
+    # print(result.shape)
 
 
     # for layers in model.model.layers:
