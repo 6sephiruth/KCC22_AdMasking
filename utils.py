@@ -71,19 +71,70 @@ def cifar10_data():
 
     return (x_train, y_train), (x_test, y_test)
 
+def load_normal_activation(model):
+# 정상 dataset의 activation 정렬
+    total_normal_activation = []
+
+    for each_label in range(10):
+
+        each_normal_input = pickle.load(open(f'./dataset/origin_data/{model.name}-{each_label}','rb'))
+
+        each_threshold_actvation = threshold_activation(model, each_normal_input)
+
+        for i in range(len(each_normal_input)):
+            total_normal_activation.append(each_threshold_actvation[i])
+
+    total_normal_activation = np.array(total_normal_activation)
+
+    pickle.dump(total_normal_activation, open(f'./dataset/{model.name}-normal','wb'))
+
+    return total_normal_activation
+
+def load_adver_activation(model):
+    total_adver_activation = []
+
+    for each_label in range(10):
+        
+        temporarily_actvation = []
+        switch_actvation = False
+
+        for each_attack_label in range(10):
+
+            if each_label != each_attack_label:
+        
+                each_adver_input = pickle.load(open(f'./dataset/targeted_cw/{model.name}-{each_label}_{each_attack_label}','rb'))
+
+                each_threshold_actvation = threshold_activation(model, each_adver_input)
+                
+                if switch_actvation == False:
+                    temporarily_actvation = each_threshold_actvation                    
+                    switch_actvation = True
+                else:
+                    temporarily_actvation += each_threshold_actvation
+
+        temporarily_actvation[np.where(temporarily_actvation > 0)] = 1
+
+        for i in range(len(temporarily_actvation)):
+            total_adver_activation.append(temporarily_actvation[i])
+
+    total_adver_activation = np.array(total_adver_activation)
+
+    pickle.dump(total_adver_activation, open(f'./dataset/{model.name}-adver','wb'))
+
+    return total_adver_activation
+
 def threshold_activation(model, dataset):
     # 여기서 데이터셋은 ex) cw-0_3
-    # return : threshold를 통해 활성화된 상위 k%의 뉴런 위치를 전달해줌
 
     threshold = 0
     total_activation = np.empty((len(dataset),0))
-
+    
     for each_layer in range(len(model.model.layers)-1):
         
         intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[each_layer].output)
         intermediate_output = intermediate_layer_model(dataset)
         intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))
-        
+
         total_activation = np.append(total_activation, intermediate_output, axis=1)
 
     non_activation_position = np.where(total_activation <= threshold)
@@ -94,7 +145,7 @@ def threshold_activation(model, dataset):
 
     return total_activation
 
-def actvation_neuron_compare(normal_activation, adver_activation, k_persent):
+def actvation_compare(normal_activation, adver_activation, k_persent):
     """
     # 정상, 적대적 actvation 중, 문제가 있는 activation만 추출
     """
@@ -103,20 +154,39 @@ def actvation_neuron_compare(normal_activation, adver_activation, k_persent):
 
     problem_activation_position = np.zeros_like(problem_activation)
 
-    problem_activation_position[np.where(problem_activation==1)] = 1
+    problem_activation_position[np.where(problem_activation == 1)] = 1
 
     problem_activation_position = np.sum(problem_activation_position, axis=0)
 
     sort_total_activation = np.sort(problem_activation_position)
 
     top_k_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*k_persent))):]
-    top_k_position_activation = np.where(top_k_activation[0] <= total_activation)
 
-    top_k_result = np.zeros_like(total_activation)
+    top_k_position_activation = np.where(problem_activation_position >= top_k_activation[0])
+
+    top_k_result = np.zeros_like(problem_activation_position)
     top_k_result[top_k_position_activation] = 1
 
     return top_k_result
 
+def report_result(self, out='out.tsv'):
+    """
+    Report self-training results to a file.
+    :param out (optional): Output file.
+    """
+    if not os.path.exists(out):
+        cols = ['n_week', 'date', 'acc', 'fpr', 'fnr']
+        with open(out, 'w') as f:
+            f.write('\t'.join(cols))
+            f.write('\n')
+
+    stats = self.test_model(self.model, self.x, self.y)
+    stats = map(lambda s: f'{s:.4f}', stats)
+
+    with open(out,'a') as f:
+        f.write('\t'.join([str(self.cnt), self.date]) + '\t')
+        f.write('\t'.join(stats))
+        f.write('\n')
 
 
 

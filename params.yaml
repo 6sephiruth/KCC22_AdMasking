@@ -3,11 +3,11 @@ batch_size: 64
 attack_method: 'targeted_cw'
 gpu_num: "2"
 
-# dataset: 'mnist'
-# model_name: 'paper_mnist'
+dataset: 'mnist'
+model_name: 'paper_mnist'
 
-dataset: 'cifar10' # cifar10
-model_name: 'resnet50_cifar10'
+# dataset: 'cifar10' # cifar10
+# model_name: 'resnet50_cifar10'
 
 pruning_label: 0
 pruning_percent: 4
@@ -17,3 +17,6 @@ pruning_selection: 'part' # total
 
 # attack_eps:
 # xai_method: ''
+
+n_label: 0
+a_label: 1

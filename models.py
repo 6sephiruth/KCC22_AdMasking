@@ -76,3 +76,15 @@ class resnet50_cifar10(Model):
 
     def predict_classes(self, inputs):
         return self.model.predict_classes(inputs)
+
+    def call_with_mask(self, inputs, mask):
+        assert len(mask) == len(self.model.layers)
+        x = inputs
+        for l,m in zip(self.model.layers, masks):
+            x = l(x)
+            x = apply_mask(x,m)
+
+        return x
+
+def apply_mask(x, mask):
+    pass
