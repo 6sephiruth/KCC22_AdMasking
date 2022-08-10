@@ -112,7 +112,9 @@ def load_adver_activation(model):
                 else:
                     temporarily_actvation += each_threshold_actvation
 
+
         temporarily_actvation[np.where(temporarily_actvation > 0)] = 1
+
 
         for i in range(len(temporarily_actvation)):
             total_adver_activation.append(temporarily_actvation[i])

@@ -80,12 +80,6 @@ def main():
 
     model.trainable = False
 
-    print(model.evaluate(x_train, y_train))
-    print(model.evaluate(x_test, y_test))
-
-
-    exit()
-
     # origin & targeted attack 데이터 생성
     if not os.path.isfile(f'./dataset/targeted_cw/{model.name}-0_1'):
         
@@ -102,6 +96,8 @@ def main():
     #         print("{}  {} 데이터셋 개수 {}:".format(normal_label, attack_label, len(dataset)))
     #         pred = model.predict(dataset)
     #         pred = np.argmax(pred, axis=1)
+    #         print(pred[:100])
+
     #         pred_count = len(np.where(pred == attack_label)[0])
     #         print("{}  {} Acc {:.2f}:".format(normal_label, attack_label, pred_count/len(dataset)*100))
 
@@ -114,6 +110,7 @@ def main():
         normal_activation = pickle.load(open(f'./dataset/{model.name}-normal','rb'))
         adver_actvation = pickle.load(open(f'./dataset/{model.name}-adver','rb'))
 
+    exit()
 
     for N_LABEL in range(10):
         N_LABEL = 5
