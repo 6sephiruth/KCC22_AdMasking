@@ -80,6 +80,12 @@ def main():
 
     model.trainable = False
 
+    print(model.evaluate(x_train, y_train))
+    print(model.evaluate(x_test, y_test))
+
+
+    exit()
+
     # origin & targeted attack 데이터 생성
     if not os.path.isfile(f'./dataset/targeted_cw/{model.name}-0_1'):
         
@@ -110,8 +116,9 @@ def main():
 
 
     for N_LABEL in range(10):
+        N_LABEL = 5
         for A_LABEL in range(10):
-            
+
             if N_LABEL == A_LABEL:
                 experiment_dataset = pickle.load(open(f'./dataset/origin_data/{model.name}-{N_LABEL}','rb'))
                 out = f'./result/{model.name}-{N_LABEL}.tsv'
@@ -124,6 +131,7 @@ def main():
 
                 # 10% 라고 가정
                 masking_actvation = actvation_compare(normal_activation, adver_actvation, k_persent)
+                temp_masking_activation = masking_actvation
 
                 dataset_count = len(experiment_dataset)
                 correct_count = 0
@@ -135,7 +143,7 @@ def main():
                         f.write('\n')
 
                 for each_data in experiment_dataset:
-                    
+                    masking_actvation = temp_masking_activation
                     if DATASET == 'mnist':
                         input_activation = np.reshape(each_data, (1,28,28,1))
                     elif DATASET == 'cifar10':
@@ -158,13 +166,13 @@ def main():
                             
                             masking_actvation = masking_actvation[len(hidden_actvation):]
 
-                        result_max = np.argmax(hidden_actvation)
+                    result_max = np.argmax(hidden_actvation)
 
-                        if result_max == N_LABEL:
-                            correct_count += 1
+                    if result_max == N_LABEL:
+                        correct_count += 1
 
                 with open(out,'a') as f:
-                    f.write('\t'.join([str(k_persent)+'%' ,str(correct_count/dataset_count)]) + '\t')
+                    f.write('\t'.join([str(k_persent)+'%' ,str(correct_count/dataset_count*100)]) + '\t')
                     f.write('\n')
 
                 # print("{}   {}".format(k_persent ,correct_count/dataset_count))
