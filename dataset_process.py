@@ -13,7 +13,7 @@ import time
 def make_origin_data(model, x_data, y_data):
 
     for label_class in range(10):
-    
+
         particular_dataset = x_data[np.where(y_data == label_class)]
         pickle.dump(particular_dataset, open(f'./dataset/origin_data/{model.name}-{label_class}','wb'))
 
@@ -53,7 +53,7 @@ def make_targeted_cw(model, x_data, y_data):
 
                     for each_ad_data in range(len(adver_data)):
                         adversarial_dataset.append(adver_data[each_ad_data])
-                    
+
                     start_position += cw_make_batch_size
                     end_point += cw_make_batch_size
 
@@ -76,7 +76,7 @@ def make_targeted_cw(model, x_data, y_data):
 
     #     for dataset_count in trange(len(particular_dataset)):
 
-    #         img = particular_dataset[dataset_count]         
+    #         img = particular_dataset[dataset_count]
 
     #         adversarial_data = targeted_cw(model, img, targeted_num)
 
@@ -85,7 +85,7 @@ def make_targeted_cw(model, x_data, y_data):
 
     #         if targeted_num == pred_adv_data:
     #             adversarial_dataset.append(adversarial_data)
-                
+
     #     adversarial_dataset = np.array(adversarial_dataset)
     #     pickle.dump(adversarial_dataset, open(f'./dataset/targeted_cw/{targeted_class}-{targeted_num}','wb'))
 
@@ -102,7 +102,7 @@ def make_targeted_cw(model, x_data, y_data):
 #         attack_test, attack_label = [], []
 
 #         for i in trange(len(dataset)):
-            
+
 #             adv_data = eval('untargeted_cw')(model, dataset[i]) # (28, 28, 1)
 #             attack_test.append(adv_data)
 

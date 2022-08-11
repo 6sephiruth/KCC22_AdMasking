@@ -25,7 +25,7 @@ def main():
     for d in physical_devices:
         tf.config.experimental.set_memory_growth(d, True)
     os.environ['TF_DETERMINISTIC_OPS'] = '0'
-    
+
     # load params
     DATASET = params_loaded['dataset']
     MODEL_NAME = params_loaded['model_name']
@@ -41,7 +41,7 @@ def main():
     elif DATASET == 'cifar10':
         train, test = cifar10_data()
         # loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        
+
     x_train, y_train = train
     x_test, y_test = test
 
@@ -58,7 +58,7 @@ def main():
         checkpoint = ModelCheckpoint(checkpoint_path,
                                     save_best_only=True,
                                     save_weights_only=True,
-                                    monitor='val_acc',
+                                    monitor='val_accuracy',
                                     verbose=1)
         if DATASET == 'mnist':
             loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -69,7 +69,7 @@ def main():
 
         elif DATASET == 'cifar10':
 
-            model.compile(optimizer='SGD', 
+            model.compile(optimizer='SGD',
                 loss='sparse_categorical_crossentropy',
                 metrics = ['accuracy'])
 
@@ -82,7 +82,7 @@ def main():
 
     # origin & targeted attack 데이터 생성
     if not os.path.isfile(f'./dataset/targeted_cw/{model.name}-0_1'):
-        
+
         make_origin_data(model, x_test, y_test)
         make_targeted_cw(model, x_test, y_test)
 
@@ -105,15 +105,14 @@ def main():
     # activation 저장
     if not os.path.isfile(f'./dataset/{model.name}-normal'):
         normal_activation = load_normal_activation(model)
-        adver_actvation = load_adver_activation(model)
+        adver_activation = load_adver_activation(model)
     else:
         normal_activation = pickle.load(open(f'./dataset/{model.name}-normal','rb'))
-        adver_actvation = pickle.load(open(f'./dataset/{model.name}-adver','rb'))
+        adver_activation = pickle.load(open(f'./dataset/{model.name}-adver','rb'))
 
-    actvation_compare(normal_activation, adver_actvation, 1)
-    exit()
+    #activation_compare(normal_activation, adver_activation, 1)
 
-    k_per = np.arange(0.01, 1, 0.01)
+    k_per = np.arange(1.00, 1.02, 0.01)
     # for N_LABEL in range(10):
     N_LABEL = 8
     for A_LABEL in range(10):
@@ -125,38 +124,30 @@ def main():
             experiment_dataset = pickle.load(open(f'./dataset/targeted_cw/{model.name}-{N_LABEL}_{A_LABEL}','rb'))
             out = f'./result/{model.name}-{N_LABEL}_{A_LABEL}.tsv'
 
-        # for k_persent in range(99):
-        for k_persent in k_per:
+        # for k_percent in range(99):
+        for k_percent in k_per:
 
-            k_persent += 1
+            #k_percent += 1
 
             # 10% 라고 가정
-            masking_actvation = actvation_compare(normal_activation, adver_actvation, k_persent)
-            temp_masking_activation = masking_actvation
+            masking_activation = activation_compare(normal_activation, adver_activation, k_percent)
+            temp_masking_activation = masking_activation
 
             dataset_count = len(experiment_dataset)
             correct_count = 0
             attack_count = 0
 
-            label_0 = 0
-            label_1 = 0
-            label_2 = 0
-            label_3 = 0
-            label_4 = 0
-            label_5 = 0
-            label_6 = 0
-            label_7 = 0
-            label_8 = 0
-            label_9 = 0
+            # 각 레이블당 판별 갯수
+            cnt_labels = [0]*10
 
             if not os.path.exists(out):
-                cols = [str(k_persent)+'%', 'Attack', 'Defense', '0', '1', '2', '3', '4', '5', '6', '7', '8,' '9']
+                cols = ['Percent', 'Attack', 'Defense', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
                 with open(out, 'w') as f:
                     f.write('\t'.join(cols))
                     f.write('\n')
 
             for each_data in experiment_dataset:
-                masking_actvation = temp_masking_activation
+                masking_activation = temp_masking_activation
 
                 if DATASET == 'mnist':
                     input_activation = np.reshape(each_data, (1,28,28,1))
@@ -164,57 +155,64 @@ def main():
                     input_activation = np.reshape(each_data, (1,32,32,3))
 
                 for each_layer in model.model.layers:
-                    print(masking_actvation.shape)
-                    if len(masking_actvation) == 0:
-                        hidden_actvation = each_layer(input_activation)
+                    #print(masking_activation.shape)
+                    if len(masking_activation) == 0:
+                        hidden_activation = each_layer(input_activation)
                     else:
-                        hidden_actvation = each_layer(input_activation)
-                        hidden_actvation = np.array(hidden_actvation)
-                        hidden_actvation_shape = hidden_actvation.shape
-                        hidden_actvation = np.reshape(hidden_actvation, -1)
+                        hidden_activation = each_layer(input_activation)
+                        hidden_activation = np.array(hidden_activation)
+                        hidden_activation_shape = hidden_activation.shape
+                        hidden_activation = np.reshape(hidden_activation, -1)
 
-                        temp_masking_position = masking_actvation[:len(hidden_actvation)]
+                        temp_masking_position = masking_activation[:len(hidden_activation)]
 
-                        hidden_actvation[np.where(temp_masking_position == 1)] = 0
+                        hidden_activation[np.where(temp_masking_position == 1)] = 0
 
-                        input_activation = np.reshape(hidden_actvation, hidden_actvation_shape)
+                        input_activation = np.reshape(hidden_activation, hidden_activation_shape)
 
-                        masking_actvation = masking_actvation[len(hidden_actvation):]
+                        masking_activation = masking_activation[len(hidden_activation):]
 
-                result_max = np.argmax(hidden_actvation, axis=1)
+                result_max = np.argmax(hidden_activation, axis=1)
 
                 if result_max == N_LABEL:
                     correct_count += 1
                 elif result_max == A_LABEL:
                     attack_count += 1
 
-                if result_max == 0:
-                    label_0 += 1
-                if result_max == 1:
-                    label_1 += 1
-                if result_max == 2:
-                    label_2 += 1
-                if result_max == 3:
-                    label_3 += 1
-                if result_max == 4:
-                    label_4 += 1
-                if result_max == 5:
-                    label_5 += 1
-                if result_max == 6:
-                    label_6 += 1
-                if result_max == 7:
-                    label_7 += 1
-                if result_max == 8:
-                    label_8 += 1
-                if result_max == 9:
-                    label_9 += 1
+                # 레이블별 카운트
+                cnt_labels[int(result_max)] += 1
 
             with open(out,'a') as f:
-                f.write('\t'.join([str(k_persent)+'%' ,'  Attack: '+str(attack_count/dataset_count*100) ,' Defense: ' + str(correct_count/dataset_count*100), ' 0 : '+str(label_0), ' 1 : '+str(label_1), ' 2 : '+str(label_2), ' 3 : '+str(label_3), ' 4 : '+str(label_4), ' 5 : '+str(label_5), ' 6 : '+str(label_6), ' 7 : '+str(label_7), ' 8 : '+str(label_8), ' 9 : '+str(label_9)]) + '\t')
+                f.write('\t'.join(map(lambda s: f'{s:.2f}',
+                                      [k_percent,
+                                       attack_count/dataset_count*100,
+                                       correct_count/dataset_count*100]
+                                    )))
+                f.write('\t')
+                f.write('\t'.join(map(str, cnt_labels)))
+
+                """
+                f.write('\t'.join(
+                        [str(k_percent)+'%',
+                         '  Attack: '+str(attack_count/dataset_count*100),
+                         ' Defense: ' + str(correct_count/dataset_count*100)
+                        ]) + '\t')
+                f.write('\t'.join(
+                            map(lambda i: f' {i[0]+1} : {i[1]}', enumerate(cnt_labels))
+                            )
+                        )
+                """
+                #f.write(' 0 : '+str(label_0), ' 1 : '+str(label_1), ' 2 : '+str(label_2), ' 3 : '+str(label_3), ' 4 : '+str(label_4), ' 5 : '+str(label_5), ' 6 : '+str(label_6), ' 7 : '+str(label_7), ' 8 : '+str(label_8), ' 9 : '+str(label_9)]) + '\t')
                 # f.write('\t'.join(['0:'+str(label_0), '1:'+str(label_1), '2:'+str(label_2), '3:'+str(label_3), '4:'+str(label_4), '5:'+str(label_5), '6:'+str(label_6), '7:'+str(label_7), '8:'+str(label_8), '9:'+str(label_9) ]) + '\t')
 
                 f.write('\n')
 
+if __name__ == '__main__':
+    main()
+
+
+
+""" unused code
     # weights = model.model.get_weights()
     # for i,w in enumerate(weights):
     #     print(w.shape)
@@ -227,7 +225,7 @@ def main():
     # masks = None
     # y_pred = model(x_test)
     # y_pred_adv = model(x_adv)
-    
+
     # y_pred_mask = model.call_with_mask(x_test,masks)
     # y_pred_mask_adv = model.call_with_mask(x_adv,masks)
 
@@ -249,7 +247,7 @@ def main():
     # get_1st_layer_output = K.function([model.layers[0].input],
     #                                 [model.layers[1].output])
     # layer_output = get_1st_layer_output([X])
-    
+
     # print(model.model.layers[0].name) # 이름 얻는 방법
     # print(model.model.layers[1].name)
     # print(model.model.layers[2].name)
@@ -268,7 +266,7 @@ def main():
 
     # result = threshold_activation(model, input_dataset)
 
-    # print(actvation_dataset.shape)
+    # print(activation_dataset.shape)
     # print(result.shape)
     # print(result.shape)
 
@@ -278,7 +276,7 @@ def main():
     #     print(a)
     #     print(a.shape)
     #     #print(a.shape)
-    #     time.sleep(4)    
+    #     time.sleep(4)
     # print(model.model.summary())
     # intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[1].output)
     # intermediate_output = intermediate_layer_model(x_test)
@@ -292,11 +290,6 @@ def main():
     # # targeted attack 데이터 생성
     # if not os.path.isfile('./dataset/targeted_cw/{model.name}-0_0'):
     #     make_targeted_cw(model, x_test, y_test)
-
-if __name__ == '__main__':
-    main()
-
-
 
 #from pruning_defense import *
 
@@ -314,7 +307,7 @@ if __name__ == '__main__':
 
         #     adver_data = pickle.load(open(f'./model/paper_mnist/dataset/targeted_cw/{i}-{j}','rb'))
 
-        #     top_adversarial_actvation_select(model, particular_data, adver_data, i, j)
+        #     top_adversarial_activation_select(model, particular_data, adver_data, i, j)
 
 # for analysis_num in range(10):
 #     for j in range(10):
@@ -348,3 +341,4 @@ if __name__ == '__main__':
 # y_data = pickle.load(open(f'./model/paper_mnist/dataset/perfect_targeted_cw/y_full_data','rb'))
 
 # mnist_model_compress(model, x_data[90000:], y_data[90000:])
+"""

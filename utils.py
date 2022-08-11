@@ -36,9 +36,9 @@ def exists(pathname):
 
 # load of mnist dataset
 def mnist_data():
-    
+
     dataset = tf.keras.datasets.mnist
-        
+
     (x_train, y_train), (x_test, y_test) = dataset.load_data()
 
     x_train = x_train.reshape((60000, 28, 28, 1))
@@ -51,7 +51,7 @@ def mnist_data():
 
 # load of cifar-10 dataset
 def cifar10_data():
-    
+
     dataset = tf.keras.datasets.cifar10
 
     (x_train, y_train), (x_test, y_test) = dataset.load_data()
@@ -79,10 +79,10 @@ def load_normal_activation(model):
 
         each_normal_input = pickle.load(open(f'./dataset/origin_data/{model.name}-{each_label}','rb'))
 
-        each_threshold_actvation = threshold_activation(model, each_normal_input)
+        each_threshold_activation = threshold_activation(model, each_normal_input)
 
         for i in range(len(each_normal_input)):
-            total_normal_activation.append(each_threshold_actvation[i])
+            total_normal_activation.append(each_threshold_activation[i])
 
     total_normal_activation = np.array(total_normal_activation)
 
@@ -94,30 +94,30 @@ def load_adver_activation(model):
     total_adver_activation = []
 
     for each_label in range(10):
-        
-        temporarily_actvation = []
-        switch_actvation = False
+
+        temporarily_activation = []
+        switch_activation = False
 
         for each_attack_label in range(10):
 
             if each_label != each_attack_label:
-        
+
                 each_adver_input = pickle.load(open(f'./dataset/targeted_cw/{model.name}-{each_label}_{each_attack_label}','rb'))
 
-                each_threshold_actvation = threshold_activation(model, each_adver_input)
-                
-                if switch_actvation == False:
-                    temporarily_actvation = each_threshold_actvation                    
-                    switch_actvation = True
+                each_threshold_activation = threshold_activation(model, each_adver_input)
+
+                if switch_activation == False:
+                    temporarily_activation = each_threshold_activation
+                    switch_activation = True
                 else:
-                    temporarily_actvation += each_threshold_actvation
+                    temporarily_activation += each_threshold_activation
 
 
-        temporarily_actvation[np.where(temporarily_actvation > 0)] = 1
+        temporarily_activation[np.where(temporarily_activation > 0)] = 1
 
 
-        for i in range(len(temporarily_actvation)):
-            total_adver_activation.append(temporarily_actvation[i])
+        for i in range(len(temporarily_activation)):
+            total_adver_activation.append(temporarily_activation[i])
 
     total_adver_activation = np.array(total_adver_activation)
 
@@ -130,9 +130,9 @@ def threshold_activation(model, dataset):
 
     threshold = 0
     total_activation = np.empty((len(dataset),0))
-    
+
     for each_layer in range(len(model.model.layers)-1):
-        
+
         intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[each_layer].output)
         intermediate_output = intermediate_layer_model(dataset)
         intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))
@@ -147,16 +147,33 @@ def threshold_activation(model, dataset):
 
     return total_activation
 
-def actvation_compare(normal_activation, adver_activation, k_persent):
+def activation_compare(normal_activation, adver_activation, k_percent):
     """
-    # 정상, 적대적 actvation 중, 문제가 있는 activation만 추출
+    # 정상, 적대적 activation 중, 문제가 있는 activation만 추출
     """
-    
+
+    if k_percent == 0.0:
+        return np.zeros(adver_activation.shape[1], dtype=bool)
+
     problem_activation = adver_activation - normal_activation
 
     ####
     problem_activation = np.sum(problem_activation, axis=0)
-    problem_activation = np.sort(problem_activation)
+
+    # 600 = 1% * 60000 / 100
+    n_masks = int(k_percent * len(problem_activation) / 100)
+
+    activations = sorted(problem_activation, reverse=True)
+    threshold = activations[n_masks]
+
+    mask_position = problem_activation >= threshold
+
+    return mask_position
+
+    print(mask_position)
+    exit()
+
+    #######
     # print(problem_activation)
     # print(problem_activation.shape)
 
@@ -165,7 +182,7 @@ def actvation_compare(normal_activation, adver_activation, k_persent):
     print(np.quantile(problem_activation, 0.5))
     print(np.quantile(problem_activation, 0.75))
     print(np.quantile(problem_activation, 1.0))
-    exit()
+    #exit()
 
     problem_activation_position = np.zeros_like(problem_activation)
 
@@ -175,7 +192,7 @@ def actvation_compare(normal_activation, adver_activation, k_persent):
 
     sort_total_activation = np.sort(problem_activation_position)
 
-    top_k_activation = sort_total_activation[ int(len(sort_total_activation) - np.around((len(sort_total_activation)/100*k_persent))) :]
+    top_k_activation = sort_total_activation[ int(len(sort_total_activation) - np.around((len(sort_total_activation)/100*k_percent))) :]
 
     top_k_position_activation = np.where(problem_activation_position >= top_k_activation[0])
 
@@ -212,11 +229,11 @@ def report_result(self, out='out.tsv'):
 #     total_activation = np.empty((len(data),0))
 
 #     for each_layer in range(len(model.model.layers)-1):
-        
+
 #         intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[each_layer].output)
 #         intermediate_output = intermediate_layer_model(data)
-#         intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))    
-        
+#         intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))
+
 #         total_activation = np.append(total_activation, intermediate_output, axis=1)
 
 
@@ -229,7 +246,7 @@ def report_result(self, out='out.tsv'):
 #     total_activation = np.sum(total_activation, axis=0)
 
 #     sort_total_activation = np.sort(total_activation)
-    
+
 #     top_1_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*1))):]
 #     top_3_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*3))):]
 #     top_5_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*5))):]
@@ -288,7 +305,7 @@ def report_result(self, out='out.tsv'):
 #     total_data = np.empty((10,6,42048))
 
 #     for i in range(10):
-    
+
 #         total_data[i] = pickle.load(open(f'./model/paper_mnist/targeted_analysis/{analysis_num}-{i}','rb'))
 #         # total_data[i] = pickle.load(open(f'./dataset/targeted_half_analysis/{analysis_num}-{i}','rb'))
 
@@ -296,17 +313,17 @@ def report_result(self, out='out.tsv'):
 #     adversarial_activation_position = np.zeros((6,42048))
 
 #     for i in range(10):
-#         if i == analysis_num:    
+#         if i == analysis_num:
 #             pass
 
 #         for j in range(6):
 
-#             # if i == analysis_num:    
+#             # if i == analysis_num:
 #             #     pass
-            
+
 #             position = np.where(total_data[i][j] == 1)
 
-#             adversarial_activation_position[j][position] = 1 
+#             adversarial_activation_position[j][position] = 1
 
 #     top_1_result = adversarial_activation_position[0] - total_data[analysis_num][0]
 #     position = np.where(top_1_result != 1)
@@ -348,7 +365,7 @@ def report_result(self, out='out.tsv'):
 
 #     model_hidden_weight = [cp_weight0, cp_weight1]
 #     intermediate_layer_model.set_weights(model_hidden_weight)
-    
+
 #     layer_1_output_1 = np.array(intermediate_layer_model(dataset))
 #     layer_1_output_3 = np.array(intermediate_layer_model(dataset))
 #     layer_1_output_5 = np.array(intermediate_layer_model(dataset))
@@ -356,28 +373,28 @@ def report_result(self, out='out.tsv'):
 #     layer_1_output_15 = np.array(intermediate_layer_model(dataset))
 #     layer_1_output_20 = np.array(intermediate_layer_model(dataset))
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:25088], (28, 28, 32))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-    
-#         layer_1_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_1_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_1_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_1_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_1_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_1_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_1_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_1_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_1_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_1_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_1_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_1_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[25088:]
 #     top_3_result = top_3_result[25088:]
@@ -398,28 +415,28 @@ def report_result(self, out='out.tsv'):
 #     layer_2_output_15 = model_layer_2.predict(layer_1_output_15)
 #     layer_2_output_20 = model_layer_2.predict(layer_1_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:6272], (14, 14, 32))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_2_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_2_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_2_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_2_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_2_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_2_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_2_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_2_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_2_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_2_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_2_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_2_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[6272:]
 #     top_3_result = top_3_result[6272:]
@@ -443,28 +460,28 @@ def report_result(self, out='out.tsv'):
 #     layer_3_output_15 = model_layer_3.predict(layer_2_output_15)
 #     layer_3_output_20 = model_layer_3.predict(layer_2_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:6400], (10, 10, 64))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_3_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_3_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_3_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_3_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_3_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_3_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_3_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_3_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_3_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_3_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_3_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_3_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[6400:]
 #     top_3_result = top_3_result[6400:]
@@ -485,28 +502,28 @@ def report_result(self, out='out.tsv'):
 #     layer_4_output_15 = model_layer_4.predict(layer_3_output_15)
 #     layer_4_output_20 = model_layer_4.predict(layer_3_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:1600], (5, 5, 64))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_4_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_4_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_4_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_4_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_4_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_4_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_4_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_4_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_4_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_4_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_4_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_4_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[1600:]
 #     top_3_result = top_3_result[1600:]
@@ -549,28 +566,28 @@ def report_result(self, out='out.tsv'):
 #     layer_7_output_15 = model_layer_7.predict(layer_6_output_15)
 #     layer_7_output_20 = model_layer_7.predict(layer_6_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:1024], 1024)
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:1024], 1024)
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:1024], 1024)
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:1024], 1024)
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:1024], 1024)
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:1024], 1024)
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:1024], 1024)
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:1024], 1024)
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:1024], 1024)
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:1024], 1024)
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:1024], 1024)
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:1024], 1024)
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_7_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_7_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_7_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_7_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_7_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_7_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_7_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_7_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_7_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_7_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_7_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_7_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[1024:]
 #     top_3_result = top_3_result[1024:]
@@ -596,28 +613,28 @@ def report_result(self, out='out.tsv'):
 #     layer_8_output_15 = model_layer_8.predict(layer_7_output_15)
 #     layer_8_output_20 = model_layer_8.predict(layer_7_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:64], 64)
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:64], 64)
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:64], 64)
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:64], 64)
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:64], 64)
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:64], 64)
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:64], 64)
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:64], 64)
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:64], 64)
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:64], 64)
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:64], 64)
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:64], 64)
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_8_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_8_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_8_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_8_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_8_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_8_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_8_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_8_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_8_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_8_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_8_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_8_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[64:]
 #     top_3_result = top_3_result[64:]
@@ -681,12 +698,12 @@ def report_result(self, out='out.tsv'):
 # #========================================================================================================
 # def model_compress(analysis_num ,model, dataset):
 # #def model_compress(model, dataset, y_full_data):
-    
+
 #     adversarial_activation_position = np.zeros((6,42048))
 #     normal_activation_position = np.zeros((6,42048))
 
 #     for i in range(10):
-    
+
 #         for j in range(10):
 
 #             for k in range(6):
@@ -739,7 +756,7 @@ def report_result(self, out='out.tsv'):
 
 #     model_hidden_weight = [cp_weight0, cp_weight1]
 #     intermediate_layer_model.set_weights(model_hidden_weight)
-    
+
 #     layer_1_output_1 = np.array(intermediate_layer_model(dataset))
 #     layer_1_output_3 = np.array(intermediate_layer_model(dataset))
 #     layer_1_output_5 = np.array(intermediate_layer_model(dataset))
@@ -747,28 +764,28 @@ def report_result(self, out='out.tsv'):
 #     layer_1_output_15 = np.array(intermediate_layer_model(dataset))
 #     layer_1_output_20 = np.array(intermediate_layer_model(dataset))
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:25088], (28, 28, 32))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:25088], (28, 28, 32))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:25088], (28, 28, 32))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-    
-#         layer_1_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_1_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_1_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_1_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_1_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_1_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_1_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_1_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_1_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_1_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_1_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_1_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[25088:]
 #     top_3_result = top_3_result[25088:]
@@ -789,28 +806,28 @@ def report_result(self, out='out.tsv'):
 #     layer_2_output_15 = model_layer_2.predict(layer_1_output_15)
 #     layer_2_output_20 = model_layer_2.predict(layer_1_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:6272], (14, 14, 32))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:6272], (14, 14, 32))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:6272], (14, 14, 32))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_2_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_2_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_2_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_2_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_2_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_2_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_2_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_2_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_2_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_2_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_2_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_2_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[6272:]
 #     top_3_result = top_3_result[6272:]
@@ -834,28 +851,28 @@ def report_result(self, out='out.tsv'):
 #     layer_3_output_15 = model_layer_3.predict(layer_2_output_15)
 #     layer_3_output_20 = model_layer_3.predict(layer_2_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:6400], (10, 10, 64))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:6400], (10, 10, 64))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:6400], (10, 10, 64))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_3_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_3_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_3_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_3_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_3_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_3_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_3_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_3_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_3_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_3_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_3_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_3_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[6400:]
 #     top_3_result = top_3_result[6400:]
@@ -876,28 +893,28 @@ def report_result(self, out='out.tsv'):
 #     layer_4_output_15 = model_layer_4.predict(layer_3_output_15)
 #     layer_4_output_20 = model_layer_4.predict(layer_3_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:1600], (5, 5, 64))
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:1600], (5, 5, 64))
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:1600], (5, 5, 64))
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_4_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_4_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_4_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_4_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_4_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_4_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_4_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_4_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_4_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_4_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_4_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_4_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[1600:]
 #     top_3_result = top_3_result[1600:]
@@ -940,28 +957,28 @@ def report_result(self, out='out.tsv'):
 #     layer_7_output_15 = model_layer_7.predict(layer_6_output_15)
 #     layer_7_output_20 = model_layer_7.predict(layer_6_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:1024], 1024)
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:1024], 1024)
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:1024], 1024)
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:1024], 1024)
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:1024], 1024)
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:1024], 1024)
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:1024], 1024)
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:1024], 1024)
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:1024], 1024)
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:1024], 1024)
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:1024], 1024)
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:1024], 1024)
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_7_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_7_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_7_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_7_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_7_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_7_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_7_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_7_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_7_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_7_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_7_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_7_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[1024:]
 #     top_3_result = top_3_result[1024:]
@@ -987,28 +1004,28 @@ def report_result(self, out='out.tsv'):
 #     layer_8_output_15 = model_layer_8.predict(layer_7_output_15)
 #     layer_8_output_20 = model_layer_8.predict(layer_7_output_20)
 
-#     adversarial_actvation_position_1 = np.reshape(top_1_result[:64], 64)
-#     adversarial_actvation_position_3 = np.reshape(top_3_result[:64], 64)
-#     adversarial_actvation_position_5 = np.reshape(top_5_result[:64], 64)
-#     adversarial_actvation_position_10 = np.reshape(top_10_result[:64], 64)
-#     adversarial_actvation_position_15 = np.reshape(top_15_result[:64], 64)
-#     adversarial_actvation_position_20 = np.reshape(top_20_result[:64], 64)
+#     adversarial_activation_position_1 = np.reshape(top_1_result[:64], 64)
+#     adversarial_activation_position_3 = np.reshape(top_3_result[:64], 64)
+#     adversarial_activation_position_5 = np.reshape(top_5_result[:64], 64)
+#     adversarial_activation_position_10 = np.reshape(top_10_result[:64], 64)
+#     adversarial_activation_position_15 = np.reshape(top_15_result[:64], 64)
+#     adversarial_activation_position_20 = np.reshape(top_20_result[:64], 64)
 
-#     adversarial_actvation_position_position_1 = np.where(adversarial_actvation_position_1 == 1)
-#     adversarial_actvation_position_position_3 = np.where(adversarial_actvation_position_3 == 1)
-#     adversarial_actvation_position_position_5 = np.where(adversarial_actvation_position_5 == 1)
-#     adversarial_actvation_position_position_10 = np.where(adversarial_actvation_position_10 == 1)
-#     adversarial_actvation_position_position_15 = np.where(adversarial_actvation_position_15 == 1)
-#     adversarial_actvation_position_position_20 = np.where(adversarial_actvation_position_20 == 1)
+#     adversarial_activation_position_position_1 = np.where(adversarial_activation_position_1 == 1)
+#     adversarial_activation_position_position_3 = np.where(adversarial_activation_position_3 == 1)
+#     adversarial_activation_position_position_5 = np.where(adversarial_activation_position_5 == 1)
+#     adversarial_activation_position_position_10 = np.where(adversarial_activation_position_10 == 1)
+#     adversarial_activation_position_position_15 = np.where(adversarial_activation_position_15 == 1)
+#     adversarial_activation_position_position_20 = np.where(adversarial_activation_position_20 == 1)
 
 #     for dataset_count in range(len(dataset)):
-        
-#         layer_8_output_1[dataset_count][adversarial_actvation_position_position_1] = 0
-#         layer_8_output_3[dataset_count][adversarial_actvation_position_position_3] = 0
-#         layer_8_output_5[dataset_count][adversarial_actvation_position_position_5] = 0
-#         layer_8_output_10[dataset_count][adversarial_actvation_position_position_10] = 0
-#         layer_8_output_15[dataset_count][adversarial_actvation_position_position_15] = 0
-#         layer_8_output_20[dataset_count][adversarial_actvation_position_position_20] = 0
+
+#         layer_8_output_1[dataset_count][adversarial_activation_position_position_1] = 0
+#         layer_8_output_3[dataset_count][adversarial_activation_position_position_3] = 0
+#         layer_8_output_5[dataset_count][adversarial_activation_position_position_5] = 0
+#         layer_8_output_10[dataset_count][adversarial_activation_position_position_10] = 0
+#         layer_8_output_15[dataset_count][adversarial_activation_position_position_15] = 0
+#         layer_8_output_20[dataset_count][adversarial_activation_position_position_20] = 0
 
 #     top_1_result = top_1_result[64:]
 #     top_3_result = top_3_result[64:]
