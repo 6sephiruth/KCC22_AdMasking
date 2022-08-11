@@ -113,8 +113,9 @@ def main():
     #activation_compare(normal_activation, adver_activation, 1)
 
     k_per = np.arange(1.00, 1.02, 0.01)
+
     # for N_LABEL in range(10):
-    N_LABEL = 8
+    N_LABEL = 6
     for A_LABEL in range(10):
 
         if N_LABEL == A_LABEL:
