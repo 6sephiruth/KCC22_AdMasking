@@ -154,6 +154,19 @@ def actvation_compare(normal_activation, adver_activation, k_persent):
     
     problem_activation = adver_activation - normal_activation
 
+    ####
+    problem_activation = np.sum(problem_activation, axis=0)
+    problem_activation = np.sort(problem_activation)
+    # print(problem_activation)
+    # print(problem_activation.shape)
+
+    print(np.quantile(problem_activation, 0.0))
+    print(np.quantile(problem_activation, 0.25))
+    print(np.quantile(problem_activation, 0.5))
+    print(np.quantile(problem_activation, 0.75))
+    print(np.quantile(problem_activation, 1.0))
+    exit()
+
     problem_activation_position = np.zeros_like(problem_activation)
 
     problem_activation_position[np.where(problem_activation == 1)] = 1
@@ -162,7 +175,7 @@ def actvation_compare(normal_activation, adver_activation, k_persent):
 
     sort_total_activation = np.sort(problem_activation_position)
 
-    top_k_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*k_persent))):]
+    top_k_activation = sort_total_activation[ int(len(sort_total_activation) - np.around((len(sort_total_activation)/100*k_persent))) :]
 
     top_k_position_activation = np.where(problem_activation_position >= top_k_activation[0])
 

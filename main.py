@@ -110,69 +110,110 @@ def main():
         normal_activation = pickle.load(open(f'./dataset/{model.name}-normal','rb'))
         adver_actvation = pickle.load(open(f'./dataset/{model.name}-adver','rb'))
 
+    actvation_compare(normal_activation, adver_actvation, 1)
     exit()
 
-    for N_LABEL in range(10):
-        N_LABEL = 5
-        for A_LABEL in range(10):
+    k_per = np.arange(0.01, 1, 0.01)
+    # for N_LABEL in range(10):
+    N_LABEL = 8
+    for A_LABEL in range(10):
 
-            if N_LABEL == A_LABEL:
-                experiment_dataset = pickle.load(open(f'./dataset/origin_data/{model.name}-{N_LABEL}','rb'))
-                out = f'./result/{model.name}-{N_LABEL}.tsv'
-            else:
-                experiment_dataset = pickle.load(open(f'./dataset/targeted_cw/{model.name}-{N_LABEL}_{A_LABEL}','rb'))
-                out = f'./result/{model.name}-{N_LABEL}_{A_LABEL}.tsv'
+        if N_LABEL == A_LABEL:
+            experiment_dataset = pickle.load(open(f'./dataset/origin_data/{model.name}-{N_LABEL}','rb'))
+            out = f'./result/{model.name}-{N_LABEL}.tsv'
+        else:
+            experiment_dataset = pickle.load(open(f'./dataset/targeted_cw/{model.name}-{N_LABEL}_{A_LABEL}','rb'))
+            out = f'./result/{model.name}-{N_LABEL}_{A_LABEL}.tsv'
 
-            for k_persent in range(99):
-                k_persent += 1
+        # for k_persent in range(99):
+        for k_persent in k_per:
 
-                # 10% 라고 가정
-                masking_actvation = actvation_compare(normal_activation, adver_actvation, k_persent)
-                temp_masking_activation = masking_actvation
+            k_persent += 1
 
-                dataset_count = len(experiment_dataset)
-                correct_count = 0
+            # 10% 라고 가정
+            masking_actvation = actvation_compare(normal_activation, adver_actvation, k_persent)
+            temp_masking_activation = masking_actvation
 
-                if not os.path.exists(out):
-                    cols = [str(k_persent)+'%', 'acc']
-                    with open(out, 'w') as f:
-                        f.write('\t'.join(cols))
-                        f.write('\n')
+            dataset_count = len(experiment_dataset)
+            correct_count = 0
+            attack_count = 0
 
-                for each_data in experiment_dataset:
-                    masking_actvation = temp_masking_activation
-                    if DATASET == 'mnist':
-                        input_activation = np.reshape(each_data, (1,28,28,1))
-                    elif DATASET == 'cifar10':
-                        input_activation = np.reshape(each_data, (1,32,32,3))
+            label_0 = 0
+            label_1 = 0
+            label_2 = 0
+            label_3 = 0
+            label_4 = 0
+            label_5 = 0
+            label_6 = 0
+            label_7 = 0
+            label_8 = 0
+            label_9 = 0
 
-                    for each_layer in range(len(model.model.layers)):
-
-                        if each_layer == len(model.model.layers):
-                            hidden_actvation = model.model.layers[each_layer](input_activation)
-                        else:
-                            hidden_actvation = model.model.layers[each_layer](input_activation)
-                            hidden_actvation = np.array(hidden_actvation)
-                            hidden_actvation_shape = hidden_actvation.shape
-                            hidden_actvation = np.reshape(hidden_actvation, -1)
-
-                            temp_masking_position = masking_actvation[:len(hidden_actvation)]
-
-                            hidden_actvation[np.where(temp_masking_position == 1)] = 0
-                            input_activation = np.reshape(hidden_actvation, hidden_actvation_shape)
-                            
-                            masking_actvation = masking_actvation[len(hidden_actvation):]
-
-                    result_max = np.argmax(hidden_actvation)
-
-                    if result_max == N_LABEL:
-                        correct_count += 1
-
-                with open(out,'a') as f:
-                    f.write('\t'.join([str(k_persent)+'%' ,str(correct_count/dataset_count*100)]) + '\t')
+            if not os.path.exists(out):
+                cols = [str(k_persent)+'%', 'Attack', 'Defense', '0', '1', '2', '3', '4', '5', '6', '7', '8,' '9']
+                with open(out, 'w') as f:
+                    f.write('\t'.join(cols))
                     f.write('\n')
 
-                # print("{}   {}".format(k_persent ,correct_count/dataset_count))
+            for each_data in experiment_dataset:
+                masking_actvation = temp_masking_activation
+
+                if DATASET == 'mnist':
+                    input_activation = np.reshape(each_data, (1,28,28,1))
+                elif DATASET == 'cifar10':
+                    input_activation = np.reshape(each_data, (1,32,32,3))
+
+                for each_layer in model.model.layers:
+                    print(masking_actvation.shape)
+                    if len(masking_actvation) == 0:
+                        hidden_actvation = each_layer(input_activation)
+                    else:
+                        hidden_actvation = each_layer(input_activation)
+                        hidden_actvation = np.array(hidden_actvation)
+                        hidden_actvation_shape = hidden_actvation.shape
+                        hidden_actvation = np.reshape(hidden_actvation, -1)
+
+                        temp_masking_position = masking_actvation[:len(hidden_actvation)]
+
+                        hidden_actvation[np.where(temp_masking_position == 1)] = 0
+
+                        input_activation = np.reshape(hidden_actvation, hidden_actvation_shape)
+
+                        masking_actvation = masking_actvation[len(hidden_actvation):]
+
+                result_max = np.argmax(hidden_actvation, axis=1)
+
+                if result_max == N_LABEL:
+                    correct_count += 1
+                elif result_max == A_LABEL:
+                    attack_count += 1
+
+                if result_max == 0:
+                    label_0 += 1
+                if result_max == 1:
+                    label_1 += 1
+                if result_max == 2:
+                    label_2 += 1
+                if result_max == 3:
+                    label_3 += 1
+                if result_max == 4:
+                    label_4 += 1
+                if result_max == 5:
+                    label_5 += 1
+                if result_max == 6:
+                    label_6 += 1
+                if result_max == 7:
+                    label_7 += 1
+                if result_max == 8:
+                    label_8 += 1
+                if result_max == 9:
+                    label_9 += 1
+
+            with open(out,'a') as f:
+                f.write('\t'.join([str(k_persent)+'%' ,'  Attack: '+str(attack_count/dataset_count*100) ,' Defense: ' + str(correct_count/dataset_count*100), ' 0 : '+str(label_0), ' 1 : '+str(label_1), ' 2 : '+str(label_2), ' 3 : '+str(label_3), ' 4 : '+str(label_4), ' 5 : '+str(label_5), ' 6 : '+str(label_6), ' 7 : '+str(label_7), ' 8 : '+str(label_8), ' 9 : '+str(label_9)]) + '\t')
+                # f.write('\t'.join(['0:'+str(label_0), '1:'+str(label_1), '2:'+str(label_2), '3:'+str(label_3), '4:'+str(label_4), '5:'+str(label_5), '6:'+str(label_6), '7:'+str(label_7), '8:'+str(label_8), '9:'+str(label_9) ]) + '\t')
+
+                f.write('\n')
 
     # weights = model.model.get_weights()
     # for i,w in enumerate(weights):
