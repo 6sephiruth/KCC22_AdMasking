@@ -10,40 +10,53 @@ from tqdm import trange
 import tensorflow as tf
 import time
 
-def make_origin_data(model, x_data, y_data):
+# def make_origin_data(model, x_data, y_data):
 
-    for label_class in range(10):
 
-        particular_dataset = x_data[np.where(y_data == label_class)]
-        pickle.dump(particular_dataset, open(f'./dataset/origin_data/{model.name}-{label_class}','wb'))
+#     for label_class in range(10):
+
+#         particular_dataset = x_data[np.where(y_data == label_class)]
+#         pickle.dump(particular_dataset, open(f'./dataset/origin_data/{model.name}-{label_class}','wb'))
 
 
 def make_targeted_cw(model, x_data, y_data):
+
 
     print("cw_adversarial data 생성 중")
 
     if model.name == 'paper_mnist':
         cw_make_batch_size = 100
     elif model.name == 'resnet50_cifar10':
-        cw_make_batch_size = 1
+        cw_make_batch_size = 3
 
-    for label_class in trange(10):
+    y_data = np.reshape(y_data,-1)
 
-        particular_dataset = x_data[np.where(y_data == label_class)]
+    for label_class in range(10):
 
-        for ad_target_class in trange(10):
+        particular_dataset = np.array(x_data[np.where(y_data == label_class)])
+
+        for ad_target_class in range(10):
+
+            print("{}---{} cw 생성 중".format(label_class, ad_target_class))
+
             adversarial_dataset = []
 
-            if label_class != ad_target_class:
+            # attack label과 동일하므로 cw 없이 그대로 출력
+            if label_class == ad_target_class:
+                particular_dataset = x_data[np.where(y_data == label_class)]
+                pickle.dump(particular_dataset, open(f'./dataset/origin_data/{model.name}-{label_class}','wb'))
 
-                # cw 데이터 생성에 메모리 한계가 있어,100개씩 끊어서 생성
+            elif label_class != ad_target_class:
 
-                start_position = 0
+                # cw 데이터 생성에 메모리 한계가 있어,100/3 개씩 끊어서 생성
+
+                start_point = 0
                 end_point = cw_make_batch_size
 
                 while True:
 
-                    part_particular_data = particular_dataset[start_position:end_point]
+                    part_particular_data = particular_dataset[start_point:end_point]
+
                     part_particular_data = tf.cast(part_particular_data, tf.float32)
 
                     target = np.empty([len(part_particular_data)])
@@ -54,10 +67,10 @@ def make_targeted_cw(model, x_data, y_data):
                     for each_ad_data in range(len(adver_data)):
                         adversarial_dataset.append(adver_data[each_ad_data])
 
-                    start_position += cw_make_batch_size
+                    start_point += cw_make_batch_size
                     end_point += cw_make_batch_size
 
-                    if len(particular_dataset) < start_position:
+                    if len(particular_dataset) < start_point:
                         break
 
                 adversarial_dataset = np.array(adversarial_dataset)
