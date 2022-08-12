@@ -80,23 +80,12 @@ def main():
 
     model.trainable = False
 
-    # x_test = x_test[:3]
-
-    # x_test = tf.cast(x_test, tf.float32)
-
-    # target = np.empty([len(x_test)])
-    # target[0: len(x_test)] = 4
-    # print(target)
-    # adver_data = carlini_wagner_l2(model, x_test, y=target, targeted=True)
-
-    # print()
-    # pickle.dump(adver_data, open(f'123','wb'))
-    # exit()
-
     # origin & targeted attack 데이터 생성
     if not os.path.isfile(f'./dataset/targeted_cw/{model.name}-0_1'):
         make_targeted_cw(model, x_test, y_test)
-    exit()
+
+    ## cw 데이터가 제대로 생성되었나 확인
+
     # for normal_label in range(10):
     #     for attack_label in range(10):
     #         if normal_label == attack_label:
@@ -111,7 +100,6 @@ def main():
 
     #         pred_count = len(np.where(pred == attack_label)[0])
     #         print("{}  {} Acc {:.2f}:".format(normal_label, attack_label, pred_count/len(dataset)*100))
-
 
     # activation 저장
     if not os.path.isfile(f'./dataset/{model.name}-normal'):
