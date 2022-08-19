@@ -18,6 +18,7 @@ def main():
 
     with open(f'./{args.params}', 'r') as f:
         params_loaded = yaml.safe_load(f)
+
     # designate gpu
     os.environ['CUDA_VISIBLE_DEVICES'] = params_loaded['gpu_num']
     # enable memory growth
@@ -102,6 +103,7 @@ def main():
     #         print("{}  {} Acc {:.2f}:".format(normal_label, attack_label, pred_count/len(dataset)*100))
 
     # activation 저장
+    # 크기: 10,000 by 42048
     if not os.path.isfile(f'./dataset/{model.name}-normal'):
         normal_activation = load_normal_activation(model)
         adver_activation = load_adver_activation(model)
@@ -111,7 +113,95 @@ def main():
 
     #activation_compare(normal_activation, adver_activation, 1)
 
-    k_per = np.arange(1.00, 1.02, 0.01)
+    stock_normal_activation = normal_activation
+    stock_adver_activation = adver_activation
+
+    for N_LABEL in range(10):
+        
+        for A_LABEL in range(10):
+
+            k_per = np.arange(1, 15, 0.2)
+            graph_y = []
+
+            for k_percent in k_per:
+
+                if N_LABEL == A_LABEL:
+                    input_dataset = pickle.load(open(f'./dataset/origin_data/{model.name}-{N_LABEL}','rb'))
+                    out = f'./result/{model.name}-{N_LABEL}.tsv'
+                else:
+                    input_dataset = pickle.load(open(f'./dataset/targeted_cw/{model.name}-{N_LABEL}_{A_LABEL}','rb'))
+                    out = f'./result/{model.name}-{N_LABEL}_{A_LABEL}.tsv'
+
+                cnt_labels = [0]*10
+                dataset_count = len(input_dataset)
+                correct_count = 0
+                attack_count = 0
+
+                if not os.path.exists(out):
+                    cols = ['Percent', 'Attack', 'Defense', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+                    with open(out, 'w') as f:
+                        f.write('\t'.join(cols))
+                        f.write('\n')
+
+                normal_activation = stock_normal_activation
+                adver_activation = stock_adver_activation
+
+                for i, each_layer in enumerate(model.model.layers):
+
+                    if i == len(model.model.layers) - 1:
+                        result_activation = each_layer(input_dataset)
+                    else:
+                        hidden_activation_count = 1
+
+                        for kernel_size in range(len(each_layer.output_shape[1:])):
+                            hidden_activation_count *= each_layer.output_shape[kernel_size + 1]
+
+                        part_normal_activation = normal_activation[:,:hidden_activation_count]
+                        part_adver_activation = adver_activation[:,:hidden_activation_count]
+
+                        part_masking_activation = activation_compare(part_normal_activation, part_adver_activation, k_percent)
+
+                        hidden_activation = each_layer(input_dataset)
+                        hidden_activation_shape = hidden_activation.shape
+                        hidden_activation = np.array(np.reshape(hidden_activation,(len(hidden_activation), -1)))
+                        
+                        hidden_activation[:, np.where(part_masking_activation == 1)] = 0
+
+                        input_dataset = np.reshape(hidden_activation, hidden_activation_shape)
+
+                        normal_activation = normal_activation[:,hidden_activation_count:]
+                        adver_activation = adver_activation[:,hidden_activation_count:]
+
+                result = np.argmax(result_activation, axis=1)
+
+                for i in range(10):
+                    cnt_labels[i] += len(np.where(result == i)[0])
+
+                    if i == N_LABEL:
+                        correct_count += len(np.where(result == i)[0])
+                    elif i == A_LABEL:
+                        attack_count += len(np.where(result == i)[0])
+
+                with open(out,'a') as f:
+                    f.write('\t'.join(map(lambda s: f'{s:.2f}',
+                                            [k_percent,
+                                            attack_count/dataset_count*100,
+                                            correct_count/dataset_count*100]
+                                        )))
+                    f.write('\t')
+                    f.write('\t'.join(map(str, cnt_labels)))
+                    f.write('\n')
+
+                graph_y.append(correct_count/dataset_count*100)
+
+            plt.ylim([0, 100])
+            plt.plot(np.arange(1,15,0.2), graph_y)
+
+            if A_LABEL == 9:
+                plt.savefig(f'./result_graph/{model.name}-{N_LABEL}.png')
+                plt.clf()
+    exit()
+
 
     # for N_LABEL in range(10):
     N_LABEL = 6

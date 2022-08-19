@@ -201,6 +201,22 @@ def activation_compare(normal_activation, adver_activation, k_percent):
 
     return top_k_result
 
+
+
+
+
+
+
+    # 600 = 1% * 60000 / 100
+    n_masks = int(k_percent * len(problem_activation) / 100)
+
+    activations = sorted(problem_activation, reverse=True)
+    threshold = activations[n_masks]
+
+    mask_position = problem_activation >= threshold
+
+
+
 def report_result(self, out='out.tsv'):
     """
     Report self-training results to a file.
@@ -222,81 +238,81 @@ def report_result(self, out='out.tsv'):
 
 
 
-# def neuron_activation_analyze(model, data, num1, num2):
+def neuron_activation_analyze(model, data, num1, num2):
+    # 여기서 data는 pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
 
-#     # 여기서 data는 pickle.load(open(f'./dataset/targeted_cw/0-1','rb'))
+    # 1000 by 0
+    total_activation = np.empty((len(data),0))
 
-#     total_activation = np.empty((len(data),0))
+    for each_layer in range(len(model.model.layers)-1):
 
-#     for each_layer in range(len(model.model.layers)-1):
+        intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[each_layer].output)
+        intermediate_output = intermediate_layer_model(data)
+        intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))
 
-#         intermediate_layer_model = tf.keras.Model(inputs=model.model.input, outputs=model.model.layers[each_layer].output)
-#         intermediate_output = intermediate_layer_model(data)
-#         intermediate_output = np.reshape(intermediate_output, (len(intermediate_output), -1))
-
-#         total_activation = np.append(total_activation, intermediate_output, axis=1)
+        total_activation = np.append(total_activation, intermediate_output, axis=1)
 
 
-#     non_activation_position = np.where(total_activation <= 0)
-#     activation_position = np.where(total_activation > 0)
+    non_activation_position = np.where(total_activation <= 0)
+    activation_position = np.where(total_activation > 0)
 
-#     total_activation[non_activation_position] = 0
-#     total_activation[activation_position] = 1
+    total_activation[non_activation_position] = 0
+    total_activation[activation_position] = 1
 
-#     total_activation = np.sum(total_activation, axis=0)
+    total_activation = np.sum(total_activation, axis=0)
 
-#     sort_total_activation = np.sort(total_activation)
+    sort_total_activation = np.sort(total_activation)
 
-#     top_1_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*1))):]
-#     top_3_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*3))):]
-#     top_5_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*5))):]
-#     top_10_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*10))):]
-#     top_15_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*15))):]
-#     top_20_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*20))):]
+    top_1_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*1))):]
+    top_3_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*3))):]
+    top_5_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*5))):]
+    top_10_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*10))):]
+    top_15_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*15))):]
+    top_20_activation = sort_total_activation[int(len(sort_total_activation)-np.around((len(sort_total_activation)/100*20))):]
 
-#     top_1_position_activation = np.where(top_1_activation[0] <= total_activation)
-#     top_3_position_activation = np.where(top_3_activation[0] <= total_activation)
-#     top_5_position_activation = np.where(top_5_activation[0] <= total_activation)
-#     top_10_position_activation = np.where(top_10_activation[0] <= total_activation)
-#     top_15_position_activation = np.where(top_15_activation[0] <= total_activation)
-#     top_20_position_activation = np.where(top_20_activation[0] <= total_activation)
+    top_1_position_activation = np.where(top_1_activation[0] <= total_activation)
+    top_3_position_activation = np.where(top_3_activation[0] <= total_activation)
+    top_5_position_activation = np.where(top_5_activation[0] <= total_activation)
+    top_10_position_activation = np.where(top_10_activation[0] <= total_activation)
+    top_15_position_activation = np.where(top_15_activation[0] <= total_activation)
+    top_20_position_activation = np.where(top_20_activation[0] <= total_activation)
 
-#     top_1_result = np.zeros_like(total_activation)
-#     top_1_result[top_1_position_activation] = 1
-#     copy_top_1_result = top_1_result
+    top_1_result = np.zeros_like(total_activation)
+    top_1_result[top_1_position_activation] = 1
+    copy_top_1_result = top_1_result
 
-#     top_3_result = np.zeros_like(total_activation)
-#     top_3_result[top_3_position_activation] = 1
-#     copy_top_3_result = top_3_result
+    top_3_result = np.zeros_like(total_activation)
+    top_3_result[top_3_position_activation] = 1
+    copy_top_3_result = top_3_result
 
-#     top_5_result = np.zeros_like(total_activation)
-#     top_5_result[top_5_position_activation] = 1
-#     copy_top_5_result = top_5_result
+    top_5_result = np.zeros_like(total_activation)
+    top_5_result[top_5_position_activation] = 1
+    copy_top_5_result = top_5_result
 
-#     top_10_result = np.zeros_like(total_activation)
-#     top_10_result[top_10_position_activation] = 1
-#     copy_top_10_result = top_10_result
+    top_10_result = np.zeros_like(total_activation)
+    top_10_result[top_10_position_activation] = 1
+    copy_top_10_result = top_10_result
 
-#     top_15_result = np.zeros_like(total_activation)
-#     top_15_result[top_15_position_activation] = 1
-#     copy_top_15_result = top_15_result
+    top_15_result = np.zeros_like(total_activation)
+    top_15_result[top_15_position_activation] = 1
+    copy_top_15_result = top_15_result
 
-#     top_20_result = np.zeros_like(total_activation)
-#     top_20_result[top_20_position_activation] = 1
-#     copy_top_20_result = top_20_result
+    top_20_result = np.zeros_like(total_activation)
+    top_20_result[top_20_position_activation] = 1
+    copy_top_20_result = top_20_result
 
-#     arrange_result = np.empty((6, len(copy_top_1_result)))
+    arrange_result = np.empty((6, len(copy_top_1_result)))
 
-#     arrange_result[0] = copy_top_1_result
-#     arrange_result[1] = copy_top_3_result
-#     arrange_result[2] = copy_top_5_result
-#     arrange_result[3] = copy_top_10_result
-#     arrange_result[4] = copy_top_15_result
-#     arrange_result[5] = copy_top_20_result
+    arrange_result[0] = copy_top_1_result
+    arrange_result[1] = copy_top_3_result
+    arrange_result[2] = copy_top_5_result
+    arrange_result[3] = copy_top_10_result
+    arrange_result[4] = copy_top_15_result
+    arrange_result[5] = copy_top_20_result
 
-#     # pickle.dump(arrange_result, open(f'./model/paper_mnist/targeted_analysis/{num1}-{num2}','wb'))
+    pickle.dump(arrange_result, open(f'./dataset/{num1}-{num2}','wb'))
 
-#     #### pickle.dump(arrange_result, open(f'./dataset/targeted_half_analysis/{num1}-{num2}','wb'))
+    ### pickle.dump(arrange_result, open(f'./dataset/targeted_half_analysis/{num1}-{num2}','wb'))
 
 # def model_weight_analysis(analysis_num, model, dataset):
 
