@@ -1,4 +1,5 @@
 model
 dataset
 img
+__pycache__
 result
