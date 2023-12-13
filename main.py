@@ -117,7 +117,7 @@ def main():
     stock_adver_activation = adver_activation
 
     for N_LABEL in range(10):
-        
+
         for A_LABEL in range(10):
 
             k_per = np.arange(1, 15, 0.2)
@@ -164,7 +164,7 @@ def main():
                         hidden_activation = each_layer(input_dataset)
                         hidden_activation_shape = hidden_activation.shape
                         hidden_activation = np.array(np.reshape(hidden_activation,(len(hidden_activation), -1)))
-                        
+
                         hidden_activation[:, np.where(part_masking_activation == 1)] = 0
 
                         input_dataset = np.reshape(hidden_activation, hidden_activation_shape)

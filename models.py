@@ -53,7 +53,7 @@ class paper_mnist(Model):
 
 # 출처: https://www.kaggle.com/code/kutaykutlu/resnet50-transfer-learning-cifar-10-beginner/notebook
 class resnet50_cifar10(Model):
-    
+
     def __init__(self):
         super(resnet50_cifar10, self).__init__()
         self.model = self.build_model()

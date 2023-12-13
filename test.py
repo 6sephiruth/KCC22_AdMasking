@@ -7,7 +7,7 @@ targeted_cw_data = pickle.load(open(f'./dataset/targeted_cw/paper_mnist-0_1','rb
 
 print(targeted_cw_data[0].shape)
 # dataset = tf.keras.datasets.mnist
-    
+
 # (x_train, y_train), (x_test, y_test) = dataset.load_data()
 
 # x_train = x_train.reshape((60000, 28, 28, 1))
